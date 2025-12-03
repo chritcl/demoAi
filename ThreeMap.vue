@@ -260,6 +260,9 @@ const handleResize = () => {
     }
 };
 
+// ResizeObserver 用于监听容器大小变化
+let resizeObserver: ResizeObserver | null = null;
+
 // ==================== 初始化Hooks ====================
 /** GeoJSON数据转换工具 */
 const { transfromGeoJSON } = useConversionStandardData();
@@ -1286,6 +1289,17 @@ onMounted(async () => {
 
         window.addEventListener('resize', handleResize);
 
+        // 使用 ResizeObserver 监听容器大小变化
+        if (mapContainerRef.value) {
+            resizeObserver = new ResizeObserver(() => {
+                // 使用 requestAnimationFrame 确保在下一帧执行，避免频繁触发
+                requestAnimationFrame(() => {
+                    handleResize();
+                });
+            });
+            resizeObserver.observe(mapContainerRef.value);
+        }
+
     } catch (error) {
         console.error('3d地图加载错误:', error);
         errorMessage.value = error instanceof Error ? error.message : '未知错误';
@@ -1317,6 +1331,12 @@ watch(() => props, async (val) => {
  */
 onBeforeUnmount(() => {
     window.removeEventListener('resize', handleResize);
+    // 清理 ResizeObserver
+    if (resizeObserver && mapContainerRef.value) {
+        resizeObserver.unobserve(mapContainerRef.value);
+        resizeObserver.disconnect();
+        resizeObserver = null;
+    }
     if (baseEarthRef.value) {
         baseEarthRef.value.destroy();
         baseEarthRef.value = null; // 解除引用

@@ -1,4 +1,5 @@
 import * as d3 from 'd3-geo';
+import { ref } from 'vue';
 
 export interface TransformOptions {
     /** 转换后的地图大致宽度（默认100），用于归一化尺寸 */
@@ -6,6 +7,8 @@ export interface TransformOptions {
 }
 
 export default function useGeoJSONTransform() {
+    const projectionRef = ref();
+    const mapSizeRef = ref(100);
 
     /**
      * 将 GeoJSON 的经纬度转为平面坐标 (墨卡托投影)
@@ -15,14 +18,13 @@ export default function useGeoJSONTransform() {
         // 深拷贝数据，避免污染源数据
         const geoJSON = JSON.parse(JSON.stringify(data));
         const { mapSize = 100 } = options;
+        mapSizeRef.value = mapSize;
 
         // 1. 创建投影器
         // fitSize 会自动计算缩放和平移，使地图完美填充在 mapSize x mapSize 的区域内
         // 并自动居中到 (0,0) 附近
         const projection = d3.geoMercator().fitSize([mapSize, mapSize], geoJSON);
-
-        // 获取路径生成器（用于计算新的中心点）
-        const pathGenerator = d3.geoPath().projection(projection);
+        projectionRef.value = projection;
 
         geoJSON.features.forEach((feature: any) => {
             // A. 修复数据结构：强制转为 MultiPolygon (兼容天地图)
@@ -67,6 +69,8 @@ export default function useGeoJSONTransform() {
     };
 
     return {
-        transformGeoJSON
+        transformGeoJSON,
+        projectionRef,
+        mapSizeRef
     };
 }

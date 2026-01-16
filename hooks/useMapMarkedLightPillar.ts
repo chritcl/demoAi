@@ -106,40 +106,56 @@ export default function useMarkedLightPillar(options: any) {
      * @param {*} lon
      * @param {*} lat
      * @param {*} heightScaleFactor 光柱高度的缩放系数
+     * @param {*} pointScaleFactor 标记点缩放系数
+     * @param {*} lightHaloScaleFactor 光圈缩放系数
+     * @param {*} lightPillarColor 光柱颜色
+     * @param {*} bottomMeshColor 底部标记点颜色
+     * @param {*} lightHaloColor 光圈颜色
      * @returns
      */
-    const createLightPillar = (lon: number, lat: number, heightScaleFactor = 1, pointScaleFactor = 1, lightHaloScaleFactor = 1, lightPillarColor: string, bottomMeshColor: string, lightHaloColor: string) => {
+    const createLightPillar = (lon: number, lat: number,
+        heightScaleFactor = 1, pointScaleFactor = 1,
+        lightHaloScaleFactor = 1, lightPillarColor: string,
+        bottomMeshColor: string, lightHaloColor: string,
+        blockMarkerLightShow: boolean, blcokMarkerPillarShow: boolean
+    ) => {
         let group = new THREE.Group()
-        // 柱体高度
-        const height = heightScaleFactor
-        // 柱体的geo,6.19=柱体图片高度/宽度的倍数
-        const geometry = new THREE.PlaneGeometry(height / 9, height)
-        // 柱体旋转90度，垂直于Y轴
-        geometry.rotateX(Math.PI / 2)
-        // 柱体的z轴移动高度一半对齐中心点
-        geometry.translate(0, 0, height / 2)
-        // 柱子材质
-        const material = new THREE.MeshBasicMaterial({
-            map: textureLoader.load(defaultOptions.lightPillarUrl),
-            color: lightPillarColor || 0x00ffff,
-            transparent: true,
-            depthWrite: false,
-            side: THREE.DoubleSide,
-        })
-        // 光柱01
-        let light01 = new THREE.Mesh(geometry, material)
-        light01.name = 'createLightPillar01'
-        // 光柱02：复制光柱01
-        let light02 = light01.clone()
-        light02.name = 'createLightPillar02'
-        // 光柱02，旋转90°，跟 光柱01交叉
-        light02.rotateZ(Math.PI / 2)
-        // 创建底部标点
-        const bottomMesh = createPointMesh(pointScaleFactor, bottomMeshColor)
-        // 创建光圈
-        const lightHalo = createLightHalo(lightHaloScaleFactor, lightHaloColor)
-        // 将光柱和标点添加到组里
-        group.add(bottomMesh, lightHalo, light01, light02)
+
+        if (blockMarkerLightShow) {
+            // 柱体高度
+            const height = heightScaleFactor
+            // 柱体的geo,6.19=柱体图片高度/宽度的倍数
+            const geometry = new THREE.PlaneGeometry(height / 9, height)
+            // 柱体旋转90度，垂直于Y轴
+            geometry.rotateX(Math.PI / 2)
+            // 柱体的z轴移动高度一半对齐中心点
+            geometry.translate(0, 0, height / 2)
+            // 柱子材质
+            const material = new THREE.MeshBasicMaterial({
+                map: textureLoader.load(defaultOptions.lightPillarUrl),
+                color: lightPillarColor || 0x00ffff,
+                transparent: true,
+                depthWrite: false,
+                side: THREE.DoubleSide,
+            })
+            // 光柱01
+            let light01 = new THREE.Mesh(geometry, material)
+            light01.name = 'createLightPillar01'
+            // 光柱02：复制光柱01
+            let light02 = light01.clone()
+            light02.name = 'createLightPillar02'
+            // 光柱02，旋转90°，跟 光柱01交叉
+            light02.rotateZ(Math.PI / 2)
+            group.add(light01, light02)
+        }
+        if (blcokMarkerPillarShow) {
+            // 创建底部标点
+            const bottomMesh = createPointMesh(pointScaleFactor, bottomMeshColor)
+            // 创建光圈
+            const lightHalo = createLightHalo(lightHaloScaleFactor, lightHaloColor)
+            // 将光柱和标点添加到组里
+            group.add(bottomMesh, lightHalo)
+        }
         // 设置组对象的姿态
         // group = setMeshQuaternion(group, R, lon, lat)
         group.position.set(lon, lat, 0)

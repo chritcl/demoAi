@@ -44,7 +44,7 @@ import useSequenceFrameAnimate from './hooks/useSequenceFrameAnimate'; // 序列
 import useCSS2DRender from './hooks/useCSS2DRender'; // CSS2D标签渲染Hook
 import useFullscreen from './hooks/useFullscreen'; // 全屏Hook
 import useGeoJSONTransform from './hooks/useGeoJSONTransform'; // GeoJSON数据转换Hook
-import useMapPoints, { type PointItem } from './hooks/useMapPoints';
+import useMapPoints, { type PointConfig, type PointItem } from './hooks/useMapPoints';
 
 // ==================== 导入资源文件 ====================
 import mapBg from './assets/map-bg.jpg'; // 地图顶部纹理
@@ -56,7 +56,7 @@ import sceneBgImg from './assets/scene-bg2.png'; // 场景背景纹理
 import risingParticlesImg from './assets/risingParticles.png'; // 上升粒子序列帧纹理
 
 // ==================== Props & Emits ====================
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     mapData?: any; // 接收父组件传入的 GeoJSON 数据
     mapConfig?: {
         // 顶部材质数据
@@ -248,11 +248,32 @@ const props = defineProps<{
             intensity3: number;
         }
     }
-    pointData?: PointItem[]; // [新增] 接收点位数据
-}>();
+    pointData?: PointItem[]; // 接收点位数据
+    pointConfig?: PointConfig; // 接收点位配置
+    controlPanl?: {
+        // 区块文字显示隐藏
+        blockTextShow?: boolean;
+        // 区块光柱显示隐藏
+        blockMarkerLightShow?: boolean;
+        // 区块光柱圆点显示隐藏
+        blcokMarkerPillarShow?: boolean;
+        // 区块悬停点击效果
+        blockHoverClick?: boolean;
+    }
+}>(), {
+    controlPanl: () => ({
+        blockTextShow: true,
+        blockMarkerLightShow: true,
+        blcokMarkerPillarShow: true,
+        blockHoverClick: true
+    })
+});
 
 const emit = defineEmits([
     'area-click',   //区块点击事件
+    'point-click',  // 点位点击事件
+    'point-leave',  // 点位离开事件
+    'point-hover',  // 点位悬停事件
     'load-start',      // 开始加载
     'load-progress',   // 加载进度 (0-100)
     'load-finish',     // 加载/渲染完成
@@ -335,6 +356,7 @@ class CurrentEarth extends BaseEarth {
     // 状态
     centerXY: [number, number] = [111.705096, 29.014803];
     hoveredProvince: THREE.Object3D | null = null;  //当前悬停的区块对象
+    hoveredPoint: THREE.Sprite | null = null;   // 当前悬停的点位对象
     provinceMap: Map<THREE.Object3D, any> = new Map();  //区块对象与属性数据的映射
 
     /** 平行光1 */
@@ -654,8 +676,10 @@ class CurrentEarth extends BaseEarth {
     initExtraElements(properties: any, province: THREE.Object3D, elem: any) {
         // 为每个要素创建光柱标记点（添加到区块对象上，使光柱跟随区块）
         this.initLightPoint(properties, province);
-        // 为每个要素创建文字标签（添加到区块对象上，使标签跟随区块）
-        this.initLabel(properties, province);
+        if (props.controlPanl?.blockTextShow) {
+            // 为每个要素创建文字标签（添加到区块对象上，使标签跟随区块）
+            this.initLabel(properties, province);
+        }
 
         // 为每个要素创建边界线（添加到区块对象上，使边界线跟随区块上浮）
         const featureData = {
@@ -887,7 +911,15 @@ class CurrentEarth extends BaseEarth {
         const heightRatio = props.mapConfig?.lightPointBeamData?.heightRatio || 8;
         let heightScaleFactor = 0.2 + random(1, 5) / heightRatio; // 长度缩放因子：0.4-1.2
         let lightCenter = properties.centroid || properties.center;
-        let light = createLightPillar(lightCenter[0], lightCenter[1], heightScaleFactor, props.mapConfig?.lightPointBeamData?.pointScaleFactor, props.mapConfig?.lightPointBeamData?.lightHaloScaleFactor, props.mapConfig?.lightPointBeamData?.lightPillarColor || '#00ffff', props.mapConfig?.lightPointBeamData?.bottomMeshColor || '#00ffff', props.mapConfig?.lightPointBeamData?.lightHaloColor || '#00ffff');
+        let light = createLightPillar(lightCenter[0], lightCenter[1],
+            heightScaleFactor, props.mapConfig?.lightPointBeamData?.pointScaleFactor,
+            props.mapConfig?.lightPointBeamData?.lightHaloScaleFactor,
+            props.mapConfig?.lightPointBeamData?.lightPillarColor || '#00ffff',
+            props.mapConfig?.lightPointBeamData?.bottomMeshColor || '#00ffff',
+            props.mapConfig?.lightPointBeamData?.lightHaloColor || '#00ffff',
+            props.controlPanl?.blockMarkerLightShow!,
+            props.controlPanl?.blcokMarkerPillarShow!
+        );
 
         const blockHeight = props.mapConfig?.blockHeight || 0.15;
         const lightHeight = props.mapConfig?.lightPointBeamData?.height || 0.01;
@@ -1021,6 +1053,7 @@ class CurrentEarth extends BaseEarth {
             emit('area-click', properties);
         }
     }
+
     /**
      * 初始化控制器
      * 设置轨道控制器的目标点为地图中心
@@ -1070,7 +1103,6 @@ class CurrentEarth extends BaseEarth {
         this.ambientLight = ambientLight;
     }
 
-
     /**
      * 初始化渲染器
      * 调用父类方法初始化WebGL渲染器
@@ -1085,45 +1117,294 @@ class CurrentEarth extends BaseEarth {
     }
 
     /**
+     * 处理点位悬停效果
+     */
+    handlePointHover(sprite: THREE.Sprite) {
+        // 如果已经悬停在这个点上，不做操作
+        if (this.hoveredPoint === sprite) return;
+
+        // 1. 如果之前有悬停别的点，先让那个点复位
+        this.resetPointState();
+
+        this.hoveredPoint = sprite;
+
+        // 2. 改变鼠标样式
+        if (this.renderer) {
+            this.renderer.domElement.style.cursor = 'pointer';
+        }
+
+        // 3. 上浮动画
+        // 获取初始高度，如果没有记录则默认当前高度
+        const originZ = sprite.userData.originZ ?? sprite.position.z;
+        const targetZ = originZ + 0.1; // 上浮 0.1 单位
+
+        new TWEEN.Tween(sprite.position)
+            .to({ z: targetZ }, 300) // 300ms 动画
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start();
+
+        // 可选：放大一点点
+        // new TWEEN.Tween(sprite.scale)
+        //     .to({ x: sprite.scale.x * 1.2, y: sprite.scale.y * 1.2 }, 300)
+        //     .start();
+    }
+
+    /**
+     * 重置点位状态（下落复位）
+     */
+    resetPointState() {
+        if (!this.hoveredPoint) return;
+
+        const sprite = this.hoveredPoint;
+        const originZ = sprite.userData.originZ ?? (props.mapConfig?.blockHeight || 0.15) + 0.2;
+
+        // 下落回原位
+        new TWEEN.Tween(sprite.position)
+            .to({ z: originZ }, 300)
+            .easing(TWEEN.Easing.Bounce.Out) // 用 Bounce 增加一点弹跳趣味性，或者用 Quadratic.Out
+            .start();
+
+        // 恢复缩放(如果有做放大)
+        // const originSize = props.pointConfig?.size || 0.5;
+        // new TWEEN.Tween(sprite.scale)
+        //     .to({ x: originSize, y: originSize }, 300)
+        //     .start();
+
+        this.hoveredPoint = null;
+
+        // 恢复鼠标样式（注意：如果此时还在区块上，handleProvinceHover 会再次把鼠标变手型，所以这里设为 default 没问题）
+        if (this.renderer) {
+            this.renderer.domElement.style.cursor = 'default';
+        }
+    }
+
+    /**
      * 初始化鼠标事件
+     */
+    // initMouseEvents() {
+    //     if (!this.renderer) return;
+
+    //     const canvas = this.renderer.domElement;
+
+    //     if (props.controlPanl?.blockHoverClick) {
+    //         // 鼠标移动事件
+    //         canvas.addEventListener('mousemove', (event: MouseEvent) => {
+    //             // 计算标准化设备坐标 (-1 到 +1)
+    //             const rect = canvas.getBoundingClientRect();
+    //             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    //             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    //             // 更新射线
+    //             if (this.camera) {
+    //                 this.raycaster.setFromCamera(mouse, this.camera);
+
+    //                 // 检测与地图组的交互
+    //                 if (this.mapGroup) {
+    //                     const intersects = this.raycaster.intersectObjects(this.mapGroup.children, true);
+
+    //                     if (intersects.length > 0) {
+    //                         // 找到第一个区块对象（排除标签和光柱）
+    //                         let targetProvince: THREE.Object3D | null = null;
+
+    //                         for (const intersect of intersects) {
+    //                             let obj = intersect.object;
+
+    //                             // 向上查找直到找到区块对象
+    //                             while (obj.parent && obj.parent !== this.mapGroup) {
+    //                                 obj = obj.parent;
+    //                             }
+
+    //                             // 检查是否是区块对象
+    //                             if (obj.userData.isProvince) {
+    //                                 targetProvince = obj;
+    //                                 break;
+    //                             }
+    //                         }
+
+    //                         if (targetProvince) {
+    //                             this.handleProvinceHover(targetProvince);
+    //                         } else {
+    //                             this.resetProvinceState();
+    //                         }
+    //                     } else {
+    //                         this.resetProvinceState();
+    //                     }
+    //                 }
+    //             }
+    //         });
+
+    //         // 鼠标点击事件
+    //         canvas.addEventListener('click', (event: MouseEvent) => {
+    //             // 计算标准化设备坐标
+    //             const rect = canvas.getBoundingClientRect();
+    //             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    //             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    //             // 更新射线
+    //             if (this.camera) {
+    //                 this.raycaster.setFromCamera(mouse, this.camera);
+
+    //                 // 检测与地图组的交互
+    //                 if (this.mapGroup) {
+    //                     const intersects = this.raycaster.intersectObjects(this.mapGroup.children, true);
+
+    //                     if (intersects.length > 0) {
+    //                         // 找到第一个区块对象
+    //                         let targetProvince: THREE.Object3D | null = null;
+
+    //                         for (const intersect of intersects) {
+    //                             let obj = intersect.object;
+
+    //                             // 向上查找直到找到区块对象
+    //                             while (obj.parent && obj.parent !== this.mapGroup) {
+    //                                 obj = obj.parent;
+    //                             }
+
+    //                             // 检查是否是区块对象
+    //                             if (obj.userData.isProvince) {
+    //                                 targetProvince = obj;
+    //                                 break;
+    //                             }
+    //                         }
+
+    //                         if (targetProvince) {
+    //                             this.handleProvinceClick(targetProvince);
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         });
+    //     }
+    // }
+    /**
+     * 初始化鼠标事件（更新）
+     * 核心逻辑：利用 Three.js 的 Raycaster（射线投射器）将 2D 鼠标坐标转换为 3D 空间探测
      */
     initMouseEvents() {
         if (!this.renderer) return;
 
         const canvas = this.renderer.domElement;
 
-        // 鼠标移动事件
+        // ==========================================
+        // 状态变量：记录按下时的位置
+        // ==========================================
+        let mouseDownPosition = { x: 0, y: 0 };
+
+        // 记录上一次悬停的点位对象，用于判断移出事件
+        let lastHoveredPoint: THREE.Object3D | null = null;
+
+        // 监听按下事件
+        canvas.addEventListener('mousedown', (event: MouseEvent) => {
+            mouseDownPosition.x = event.clientX;
+            mouseDownPosition.y = event.clientY;
+        });
+
+        // ==========================================
+        // 1. 鼠标移动事件监听 (处理悬停 Hover 效果)
+        // ==========================================
         canvas.addEventListener('mousemove', (event: MouseEvent) => {
-            // 计算标准化设备坐标 (-1 到 +1)
+            // 获取 canvas 在浏览器可视区域的位置和尺寸
             const rect = canvas.getBoundingClientRect();
+
+            // --- [核心数学] 坐标归一化 (NDC) ---
+            // 浏览器坐标：左上角 (0,0)，右下角 (width, height)
+            // Three.js 坐标：中心 (0,0)，左下角 (-1,-1)，右上角 (1,1)
+            // 下面的公式用于将鼠标坐标转换到 -1 到 +1 的区间
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-            // 更新射线
-            if (this.camera) {
+            if (this.camera && this.mapGroup) {
+                // 更新射线：从相机位置出发，穿过鼠标在屏幕上的点
                 this.raycaster.setFromCamera(mouse, this.camera);
 
-                // 检测与地图组的交互
-                if (this.mapGroup) {
-                    const intersects = this.raycaster.intersectObjects(this.mapGroup.children, true);
+                // --- 核心检测 射线交叉检测 ---
+                // intersectObjects 检测射线穿过了哪些物体
+                // 参数1: 检测范围 (整个地图组)
+                // 参数2: true 表示递归检测 (不仅检测组，还要检测组里的子网格 Mesh)
+                const intersects = this.raycaster.intersectObjects(this.mapGroup.children, true);
 
-                    if (intersects.length > 0) {
-                        // 找到第一个区块对象（排除标签和光柱）
+                // 如果数组长度 > 0，说明射线打中了东西
+                if (intersects.length > 0) {
+                    // intersects 数组是按距离排序的，[0] 是离相机最近的物体
+                    // 鼠标摸到的第一个东西（可能是点位图标或文字标签）
+                    const firstObj = intersects[0].object;
+
+                    // -------------------------------------------------
+                    // 场景 A: 悬停在【点位图标 (Sprite)】上
+                    // -------------------------------------------------
+                    // 判断依据：userData.isMapPoint 标记 + 对象类型是 Sprite
+                    if (firstObj.userData.isMapPoint && firstObj instanceof THREE.Sprite) {
+
+                        // 防止重复触发
+                        // 只有当“当前点位”不等于“上一次点位”时，才认为是新的一次 Hover
+                        if (lastHoveredPoint !== firstObj) {
+
+                            // 极端情况处理：如果直接从点A跳到了点B（中间没经过空隙），先把点A的leave发出去
+                            if (lastHoveredPoint) {
+                                emit('point-leave', { data: lastHoveredPoint.userData, hover: false });
+                                console.log('point-leave', 1);
+                            }
+
+                            // 1. 互斥处理：既然摸到了点，说明不在地图区块上了，
+                            //    为了防止地图也跟着高亮（视觉混乱），先强制取消地图的高亮状态
+                            this.resetProvinceState();
+                            // 2. 触发点位的悬停逻辑（上浮动画等）
+                            this.handlePointHover(firstObj);
+
+                            // 更新状态为当前点
+                            lastHoveredPoint = firstObj;
+
+                            emit('point-hover', {
+                                hover: true,
+                                data: firstObj.userData,
+                                position: {
+                                    x: event.clientX,
+                                    y: event.clientY
+                                }
+                            });
+                        }
+
+                        return; // 阻断后续逻辑
+                    }
+
+                    // 检测是否刚离开点位
+                    if (lastHoveredPoint) {
+                        emit('point-leave', { data: lastHoveredPoint.userData, hover: false });
+                        console.log('point-leave', 2);
+                        lastHoveredPoint = null; // 清空状态
+                        this.resetPointState();  // 复位视觉状态
+                    }
+
+                    // -------------------------------------------------
+                    // 场景 B: 悬停在【文字标签】上
+                    // -------------------------------------------------
+                    // 如果你的需求是鼠标碰到文字标签时，不应该触发地图高亮，也不触发点位上浮
+                    if (firstObj.userData.isMapPointLabel) {
+                        this.resetProvinceState();  // 复位地图
+                        // 如果需要标签也有交互（比如变色），可以在这里写逻辑
+                        return; // 同样阻断，防止穿透到下方的地图
+                    }
+
+                    // -------------------------------------------------
+                    // 场景 C: 悬停在【地图区块 (Province)】上
+                    // -------------------------------------------------
+                    // 鼠标既没碰到点位，也没碰到标签，可能碰到了地图 Mesh
+
+                    // === 情况 C: 悬停在地图区块上 ===
+                    if (props.controlPanl?.blockHoverClick) {
                         let targetProvince: THREE.Object3D | null = null;
+                        let obj = firstObj;
 
-                        for (const intersect of intersects) {
-                            let obj = intersect.object;
+                        // 向上查找，直到 obj 变成 mapGroup 的直接子节点
+                        // (Raycaster 打中的是 Mesh，而 Mesh 的父级是 Province，Province 的父级是 mapGroup)
+                        while (obj.parent && obj.parent !== this.mapGroup) {
+                            obj = obj.parent;
+                        }
 
-                            // 向上查找直到找到区块对象
-                            while (obj.parent && obj.parent !== this.mapGroup) {
-                                obj = obj.parent;
-                            }
-
-                            // 检查是否是区块对象
-                            if (obj.userData.isProvince) {
-                                targetProvince = obj;
-                                break;
-                            }
+                        // 循环结束后，obj 现在就是 MapGroup 下面的那个对象（即 Province 对象）
+                        // 此时检查它是否有标记
+                        if (obj.userData.isProvince) {
+                            targetProvince = obj;
                         }
 
                         if (targetProvince) {
@@ -1131,45 +1412,89 @@ class CurrentEarth extends BaseEarth {
                         } else {
                             this.resetProvinceState();
                         }
-                    } else {
-                        this.resetProvinceState();
                     }
+                } else {
+                    // -------------------------------------------------
+                    // 场景 D: 鼠标移到了虚空/背景区域
+                    // -------------------------------------------------
+                    // 射线没打中任何东西，说明鼠标移出了地球
+
+                    // 检测是否刚离开点位（移入虚空）
+                    if (lastHoveredPoint) {
+                        emit('point-leave', { data: lastHoveredPoint.userData, hover: false });
+                        console.log('point-leave', 3);
+                        lastHoveredPoint = null; // 清空状态
+                    }
+                    // 此时需要把所有的高亮、上浮状态全部复位
+                    this.resetPointState();
+                    this.resetProvinceState();
                 }
             }
         });
 
-        // 鼠标点击事件
+        // ==========================================
+        // 2. 鼠标点击事件监听 (Click)
+        // ==========================================
         canvas.addEventListener('click', (event: MouseEvent) => {
-            // 计算标准化设备坐标
+
+            // --- 拖拽检测 ---
+            // 计算按下点和抬起点的距离
+            const deltaX = event.clientX - mouseDownPosition.x;
+            const deltaY = event.clientY - mouseDownPosition.y;
+            // 勾股定理计算直线距离
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            // 如果距离大于 3px (阈值)，说明用户进行了拖动操作（如旋转地图）
+            // 此时直接 return，不触发点击逻辑
+            if (distance > 3) {
+                return;
+            }
+
+            // ... 这里的坐标转换逻辑同上 ...
             const rect = canvas.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-            // 更新射线
-            if (this.camera) {
+            if (this.camera && this.mapGroup) {
                 this.raycaster.setFromCamera(mouse, this.camera);
+                const intersects = this.raycaster.intersectObjects(this.mapGroup.children, true);
 
-                // 检测与地图组的交互
-                if (this.mapGroup) {
-                    const intersects = this.raycaster.intersectObjects(this.mapGroup.children, true);
+                if (intersects.length > 0) {
+                    const firstObj = intersects[0].object;
 
-                    if (intersects.length > 0) {
-                        // 找到第一个区块对象
+                    // -------------------------------------------------
+                    // 交互 1: 点击了【点位】
+                    // -------------------------------------------------
+                    // 无论是点了图标(isMapPoint) 还是文字(isMapPointLabel) 都算
+                    if (firstObj.userData.isMapPoint || firstObj.userData.isMapPointLabel) {
+                        // 触发 Vue 的自定义事件，把点位绑定的数据(userData)传给父组件
+                        emit('point-click', {
+                            data: firstObj.userData,
+                            position: {
+                                x: event.clientX, // 鼠标点击的屏幕 X 坐标
+                                y: event.clientY  // 鼠标点击的屏幕 Y 坐标
+                            }
+                        });
+                        // 【关键】阻止穿透！
+                        // 如果点中了图标，我们不希望同时触发它下面地图区块的点击事件
+                        return;
+                    }
+
+                    // -------------------------------------------------
+                    // 交互 2: 点击了【地图区块】
+                    // -------------------------------------------------
+                    if (props.controlPanl?.blockHoverClick) {
                         let targetProvince: THREE.Object3D | null = null;
+                        let obj = firstObj;
 
-                        for (const intersect of intersects) {
-                            let obj = intersect.object;
+                        // 一直往上找，直到找到 mapGroup 的子节点
+                        while (obj.parent && obj.parent !== this.mapGroup) {
+                            obj = obj.parent;
+                        }
 
-                            // 向上查找直到找到区块对象
-                            while (obj.parent && obj.parent !== this.mapGroup) {
-                                obj = obj.parent;
-                            }
-
-                            // 检查是否是区块对象
-                            if (obj.userData.isProvince) {
-                                targetProvince = obj;
-                                break;
-                            }
+                        // 判断找到的这个节点是不是省份
+                        if (obj.userData.isProvince) {
+                            targetProvince = obj;
                         }
 
                         if (targetProvince) {
@@ -1184,10 +1509,7 @@ class CurrentEarth extends BaseEarth {
     /**
      * 初始化或更新点位
      */
-    updatePoints(
-        data: PointItem[],
-        mapHeight: number = 0.15
-    ) {
+    updatePoints(data: PointItem[], mapHeight: number = 0.15) {
         // 1. 清理旧数据 (完全保留你写的逻辑)
         if (this.pointsGroup) {
             // 如果你加到了 mapGroup 就从 mapGroup 删，否则从 scene 删
@@ -1209,11 +1531,17 @@ class CurrentEarth extends BaseEarth {
         // 2. 调用传入的 createFn 创建新组
         // 这里把配置逻辑收敛在类里面，或者通过参数再传进来
         this.pointsGroup = createPointsGroup(data, {
-            baseHeight: mapHeight + 0.33, // 浮在地图上方
-            size: 0.5,
-            typeConfig: {
-                'device': { color: '#ffff00' },
-                'camera': { color: '#00ff00' }
+            baseHeight: mapHeight + (props.pointConfig?.baseHeight || 0.2), // 浮在地图上方
+            size: props.pointConfig?.size || 0.3,
+            labelConfig: {
+                show: props.pointConfig?.labelConfig?.show ?? true,
+                color: props.pointConfig?.labelConfig?.color || '#ffff00', // 黄色文字
+                scale: props.pointConfig?.labelConfig?.scale || 0.3,       // 文字整体大小
+                offset: props.pointConfig?.labelConfig?.offset || [0, -0.5] // 向下偏移 0.5 单位
+            },
+            typeConfig: props.pointConfig?.typeConfig || {
+                'device': { icon: '../assets/markerPoint1.png', color: '#ffff00' },
+                'camera': { icon: '../assets/markerPoint1.png', color: '#00ff00' }
             }
         });
 
@@ -1405,7 +1733,6 @@ watch(() => props, async (val) => {
         isLoading.value = true;
         try {
             errorMessage.value = '';
-            console.log(val.mapData);
             if (val.mapData) {
                 await baseEarthRef.value.updateMap(val.mapData);
                 // 数据更新不需要重新加载纹理，所以手动关闭 loading
@@ -1428,8 +1755,7 @@ watch(() => props, async (val) => {
 watch(() => props.pointData, (newVal) => {
     if (baseEarthRef.value && newVal) {
         // --- 核心变化 ---
-        // 我们不再这里写具体的 add/remove 逻辑
-        // 而是直接调用类的 updatePoints，并把 createPointsGroup 当作工具传进去
+        // 调用类的 updatePoints，并把 createPointsGroup 当作工具传进去
         baseEarthRef.value.updatePoints(
             newVal,
             props.mapConfig?.blockHeight // <--- 传入高度配置

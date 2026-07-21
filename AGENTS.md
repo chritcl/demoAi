@@ -2,16 +2,18 @@
 
 ## 文档权威顺序
 
-1. `AGENTS.md`（本文件）
-2. `docs/product/GOAL.md`
-3. `docs/execution/STATE.json`
-4. `docs/execution/EXECUTION-PROTOCOL.md`
-5. `docs/execution/STAGE-GATES.md`
-6. `docs/execution/WORK-PACKAGE-TEMPLATE.md`
-7. 工作包规范：`docs/execution/work-packages/WP-XXX-*.md`
-8. 证据：`docs/execution/evidence/`
-9. 架构约束：`docs/architecture/`
-10. 遗留参考：`docs/legacy/` 与 `old/`
+1. 用户当前明确指令。
+2. 根目录 `AGENTS.md`（本文件）。
+3. `docs/product/GOAL.md` 和 `docs/product/SCOPE.md`。
+4. 已接受的 ADR（`docs/architecture/adr/ADR-*.md` 中状态为 `accepted` 的记录）。
+5. active 架构文档（`docs/architecture/` 中 `status: active` 的文档）。
+6. 当前工作包规范（`docs/execution/work-packages/WP-XXX-*.md` 中处于 `in_progress` 或 `ready` 的工作包）。
+7. 原始功能清单与流程材料（`docs/功能开发清单.xlsx`、`docs/系统导图.md`、`docs/oa/` 等）。
+8. 遗留参考：`docs/legacy/` 与 `old/`。
+
+> `docs/execution/STATE.json` 是动态执行状态的唯一真源，记录当前阶段、活动门禁、工作包状态、门禁状态和阻塞原因。`STATE.json` 不覆盖产品和架构决策，工作包不得覆盖已接受的 ADR 或 active 架构约束。
+>
+> `docs/execution/evidence/` 只证明执行结果，不产生新的架构规范或产品决策。
 
 ## 禁止项
 
@@ -89,7 +91,6 @@
 
 ## 门禁与阶段
 
-- 当前阶段：S0
-- 当前目标门禁：G0
 - 阶段和门禁定义在 `docs/execution/STAGE-GATES.md`。
+- 当前阶段、活动门禁和门禁状态以 `docs/execution/STATE.json` 为唯一真源。
 - 自动门禁通过后，hybrid 门禁仍需用户明确批准。

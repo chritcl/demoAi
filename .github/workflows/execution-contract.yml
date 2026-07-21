@@ -16,8 +16,15 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Check diff whitespace (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          git diff --check "origin/${{ github.base_ref }}...HEAD"
+
+      - name: Check current commit whitespace (push)
+        if: github.event_name == 'push'
+        run: git show --check --oneline --no-renames HEAD
+
       - name: Validate execution contracts
         run: node tools/execution/validate.mjs
-
-      - name: Check diff whitespace
-        run: git diff --check

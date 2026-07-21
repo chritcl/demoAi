@@ -6,18 +6,18 @@ status: active
 
 本文件定义 Codex 每次启动后必须遵循的固定执行流程。所有写入必须对应到处于 `in_progress` 的工作包。
 
+当前阶段、活动门禁和工作包状态以 `docs/execution/STATE.json` 为唯一真源；本协议不再硬编码这些动态信息。
+
 ## 文档权威顺序
 
-1. `AGENTS.md`
-2. `docs/product/GOAL.md`
-3. `docs/execution/STATE.json`
-4. `docs/execution/EXECUTION-PROTOCOL.md`（本文件）
-5. `docs/execution/STAGE-GATES.md`
-6. `docs/execution/WORK-PACKAGE-TEMPLATE.md`
-7. 工作包规范：`docs/execution/work-packages/WP-XXX-*.md`
-8. 证据：`docs/execution/evidence/`
-9. 架构约束：`docs/architecture/`
-10. 遗留参考：`docs/legacy/` 与 `old/`
+1. 用户当前明确指令。
+2. `AGENTS.md`
+3. `docs/product/GOAL.md` 和 `docs/product/SCOPE.md`
+4. 已接受的 ADR
+5. active 架构文档
+6. 当前工作包规范
+7. 原始功能清单与流程材料
+8. `docs/legacy/` 与 `old/`
 
 ## 启动流程
 
@@ -54,95 +54,31 @@ git branch --show-current
 
 - 不得丢弃。
 - 不得执行 `git reset --hard` 或 `git clean -fd`。
-- 如果这些修改无法明确归属于一个已有的 `in_progress` 工作包，则停止，报告 `BLOCKED`。
-- 如果可以明确归属于当前 `in_progress` 工作包，按恢复协议继续。
+- 如果这些修改无法明确归属于当前 `in_progress` 工作包，报告 `BLOCKED` 并停止。
+- 如果可归属，在 evidence 中记录后继续。
 
-## 状态机
+## 工作包执行流程
 
-每个工作包具有以下状态：
+1. 确认当前处于 `in_progress` 的工作包；如果不存在，选择优先级最高的 `ready` 工作包，将其状态更新为 `in_progress`。
+2. 读取该工作包规范。
+3. 按规范执行，所有写入对应到该工作包。
+4. 工作包完成后：
+   - 运行 `node tools/execution/validate.mjs`。
+   - 运行 `git diff --check`。
+   - 如果通过，将状态更新为 `review`。
+   - 再次运行验证。
+   - 如果仍通过，将状态更新为 `done`，填写 `completed_at` 和 `evidence`。
+   - 运行 `git status --short` 确认工作区干净。
+5. 每个工作包独立提交。
 
-- `draft`：已定义，未准备就绪。
-- `ready`：依赖已满足，可开始执行。
-- `in_progress`：正在执行，所有写入必须对应到该工作包。
-- `review`：已完成实现，等待验证或人工评审。
-- `done`：已通过验证，可追踪到提交。
-- `blocked`：因阻塞原因暂停。
+## 门禁与阶段升级
 
-状态转换规则：
-
-- `draft` → `ready`：当所有依赖工作包均为 `done`。
-- `ready` → `in_progress`：当没有更高优先级或同阶段的 `in_progress` 工作包。
-- `in_progress` → `review`：实现完成，已生成 evidence，准备验证。
-- `review` → `done`：验证通过，已提交。
-- 任何状态 → `blocked`：遇到强制停止条件。
-- `blocked` → `ready` 或 `in_progress`：阻塞条件解除后由恢复协议决定。
-
-## 工作包选择算法
-
-1. 如果存在 `in_progress` 工作包，优先继续执行该工作包。
-2. 如果不存在 `in_progress` 工作包，选择优先级最高、状态为 `ready` 的工作包。
-3. 如果同阶段存在多个 `ready` 工作包，按 `priority` 字段升序选择。
-4. 如果选定工作包有依赖未完成，则不得将其标记为 `in_progress`。
-
-## 阶段与门禁
-
-阶段和门禁定义在 `STAGE-GATES.md` 中。
-
-- 当前阶段为 `S0`，目标门禁为 `G0`。
-- 只有当本阶段所有工作包完成且门禁条件满足时，才能进入下一阶段。
-- 自动门禁未通过时禁止进入下一阶段。
-- 人工门禁必须等待用户明确批准。
-
-## 写入规则
-
-1. 所有写入必须对应到处于 `in_progress` 的工作包。
-2. 禁止写入不属于当前工作包范围的路径。
-3. 禁止修改 Git 历史。
-4. 禁止丢弃用户未提交修改。
-5. 所有文件写入必须使用 UTF-8 without BOM。
-6. 代码注释必须使用中文。
-
-## 提交规则
-
-每个工作包独立提交：
-
-- 提交信息格式：`{类型}(WP-XXX): {描述}`。
-- 类型可以是 `chore`、`docs`、`ci`、`feat`、`refactor` 等。
-- 提交信息中必须包含工作包 ID，例如 `(WP-002)`。
-- 禁止提交信息：`1`、`add`、`update`、`fix`、`done`。
-
-提交前必须执行：
-
-```powershell
-node tools/execution/validate.mjs
-git diff --check
-git status --short
-```
-
-提交后必须再次执行：
-
-```powershell
-node tools/execution/validate.mjs
-git status --short
-```
-
-## 验证与证据
-
-每个工作包必须生成 evidence：
-
-- 证据路径：`docs/execution/evidence/WP-XXX-*.md`。
-- 证据必须包含：完成内容、验证命令、验证结果、提交 SHA、已知风险。
-- 工作包完成后，必须执行其规范中定义的验证命令。
-
-## 恢复协议
-
-当会话中断或工作区存在未提交修改时，按以下协议恢复：
-
-1. 读取 `STATE.json` 确认当前 `in_progress` 工作包。
-2. 执行 `git status --short` 确认未提交修改。
-3. 如果未提交修改可明确归属于当前 `in_progress` 工作包，则继续执行。
-4. 如果状态不一致（例如依赖未完成的工作包被标记为 `in_progress`），先修正 `STATE.json`，再恢复执行。
-5. 如果无法恢复，报告 `BLOCKED` 并等待用户指令。
+- 阶段和门禁定义在 `docs/execution/STAGE-GATES.md`。
+- 当前阶段、活动门禁、门禁状态以 `docs/execution/STATE.json` 为唯一真源。
+- 阶段工作进行中时，`active_gate` 为 `null`。
+- 只有进入门禁评估时才设置对应 Gate ID。
+- 自动门禁通过后，由 Codex 更新 `active_stage` 和 `active_gate`。
+- 人工/hybrid 门禁到达 `waiting_human` 状态时，必须停止并等待用户明确批准。
 
 ## 强制停止条件
 

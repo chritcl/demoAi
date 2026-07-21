@@ -3,7 +3,7 @@
   "goal_id": "GOAL-001",
   "goal_status": "approved",
   "active_stage": "S1",
-  "active_gate": "G1",
+  "active_gate": null,
   "auto_continue_until_gate": true,
   "work_packages": [
     {
@@ -75,6 +75,94 @@
       "spec": "docs/execution/work-packages/WP-004-execution-validation.md",
       "evidence": "docs/execution/evidence/WP-004-execution-validation.md",
       "completed_at": "2026-07-21T22:23:26.2751869+08:00"
+    },
+    {
+      "id": "WP-005",
+      "title": "Post-G0 execution consistency repair",
+      "stage": "S1",
+      "status": "done",
+      "priority": 0,
+      "risk": "high",
+      "depends_on": [
+        "WP-004"
+      ],
+      "spec": "docs/execution/work-packages/WP-005-execution-consistency-repair.md",
+      "evidence": "docs/execution/evidence/WP-005-execution-consistency-repair.md",
+      "completed_at": "2026-07-21T23:34:49+08:00"
+    },
+    {
+      "id": "WP-006",
+      "title": "需求基线与阶段映射",
+      "stage": "S1",
+      "status": "ready",
+      "priority": 1,
+      "risk": "high",
+      "depends_on": [
+        "WP-005"
+      ],
+      "spec": "docs/execution/work-packages/WP-006-requirement-baseline.md",
+      "evidence": null,
+      "completed_at": null
+    },
+    {
+      "id": "WP-007",
+      "title": "领域地图与业务包边界",
+      "stage": "S1",
+      "status": "draft",
+      "priority": 2,
+      "risk": "high",
+      "depends_on": [
+        "WP-006"
+      ],
+      "spec": "docs/execution/work-packages/WP-007-domain-map-and-package-boundary.md",
+      "evidence": null,
+      "completed_at": null
+    },
+    {
+      "id": "WP-008",
+      "title": "核心技术与架构 ADR",
+      "stage": "S1",
+      "status": "draft",
+      "priority": 3,
+      "risk": "high",
+      "depends_on": [
+        "WP-007"
+      ],
+      "spec": "docs/execution/work-packages/WP-008-core-technology-and-architecture-adr.md",
+      "evidence": null,
+      "completed_at": null
+    },
+    {
+      "id": "WP-009",
+      "title": "API、安全与非功能基线",
+      "stage": "S1",
+      "status": "draft",
+      "priority": 4,
+      "risk": "high",
+      "depends_on": [
+        "WP-007",
+        "WP-008"
+      ],
+      "spec": "docs/execution/work-packages/WP-009-api-security-and-non-functional-baseline.md",
+      "evidence": null,
+      "completed_at": null
+    },
+    {
+      "id": "WP-010",
+      "title": "G1 门禁材料汇总",
+      "stage": "S1",
+      "status": "draft",
+      "priority": 5,
+      "risk": "medium",
+      "depends_on": [
+        "WP-006",
+        "WP-007",
+        "WP-008",
+        "WP-009"
+      ],
+      "spec": "docs/execution/work-packages/WP-010-g1-gate-materials.md",
+      "evidence": null,
+      "completed_at": null
     }
   ],
   "gates": [
@@ -122,5 +210,5 @@
     }
   ],
   "blocked_reasons": [],
-  "last_completed_work_package": "WP-004"
+  "last_completed_work_package": "WP-005"
 }

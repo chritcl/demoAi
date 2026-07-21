@@ -14,36 +14,38 @@ status: active
 
 | 需求编号 | 业务域 | 业务包/前端功能域 | 工作包 | 验收标准 | 测试证据 | 阶段 |
 |---|---|---|---|---|---|---|
-| REQ-PORTAL-001 | 统一门户 | s1_portal / pc-portal | 待 S1 分配 | 门户首页展示统计、公告、待办 | 待创建 | 一期 |
-| REQ-PORTAL-002 | 统一门户 | s1_portal / pc-portal | 待 S1 分配 | 消息提醒列表与未读数 | 待创建 | 一期 |
-| REQ-PORTAL-003 | 统一门户 | s1_portal / pc-portal | 待 S1 分配 | 应用入口可配置 | 待创建 | 一期 |
-| REQ-PORTAL-004 | 统一门户 | s1_portal / pc-portal | 待 S1 分配 | 统一待办/已办列表 | 待创建 | 一期 |
-| REQ-PORTAL-005 | 统一门户 | s1_portal / pc-portal | 待 S1 分配 | 通讯录搜索 | 待创建 | 一期 |
-| REQ-INFO-001 | 信息发布 | s2_document / pc-portal | 待 S1 分配 | 栏目 CRUD | 待创建 | 一期 |
-| REQ-INFO-002 | 信息发布 | s2_document / pc-portal | 待 S1 分配 | 文章 CRUD | 待创建 | 一期 |
-| REQ-INFO-003 | 信息发布 | s2_document / pc-portal | 待 S1 分配 | 草稿/提交审核 | 待创建 | 一期 |
-| REQ-INFO-004 | 信息发布 | s2_document / pc-portal | 待 S1 分配 | 审核通过/驳回 | 待创建 | 一期 |
-| REQ-NOTICE-001 | 通知公告 | s2_document / pc-portal | 待 S1 分配 | 公告 CRUD | 待创建 | 一期 |
-| REQ-NOTICE-002 | 通知公告 | s2_document / pc-portal | 待 S1 分配 | 公告发布/撤回 | 待创建 | 一期 |
-| REQ-NOTICE-003 | 通知公告 | s2_document / pc-portal | 待 S1 分配 | 公告置顶 | 待创建 | 一期 |
-| REQ-NOTICE-004 | 通知公告 | s2_document / pc-portal | 待 S1 分配 | 阅读统计 | 待创建 | 一期 |
-| REQ-DOC-001 | 公文管理 | s3_office / pc-document | 待 S1 分配 | 发文起草 | 待创建 | 一期 |
-| REQ-DOC-002 | 公文管理 | s3_office / pc-document | 待 S1 分配 | 发文提交审批 | 待创建 | 一期 |
-| REQ-DOC-003 | 公文管理 | s3_office / pc-document | 待 S1 分配 | 自动文号 | 待创建 | 一期 |
-| REQ-DOC-004 | 公文管理 | s3_office / pc-document | 待 S1 分配 | 收文登记 | 待创建 | 一期 |
-| REQ-DOC-005 | 公文管理 | s3_office / pc-document | 待 S2 分配 | 发文归档 | 待创建 | 二期 |
-| REQ-DOC-006 | 公文管理 | s3_office / pc-document | 待 S2 分配 | 公文统计 | 待创建 | 二期 |
-| REQ-EXCHANGE-001 | 公文交换 | s3_office / pc-document | 待 S5 分配 | 收文登记/传递 | 待创建 | 三期 |
-| REQ-EXCHANGE-002 | 公文交换 | s3_office / pc-document | 待 S5 分配 | 收文查询 | 待创建 | 三期 |
-| REQ-EXCHANGE-003 | 公文交换 | s3_office / pc-document | 待 S5 分配 | 发文传输基础 | 待创建 | 三期 |
-| REQ-OFFICE-001 | 综合办公 | s4_office / pc-office | 待 S1 分配 | 用车申请流程 | 待创建 | 一期 |
-| REQ-OFFICE-002 | 综合办公 | s4_office / pc-office | 待 S1 分配 | 请休假申请流程 | 待创建 | 一期 |
-| REQ-OFFICE-003 | 综合办公 | s4_office / pc-office | 待 S2 分配 | 用印申请流程 | 待创建 | 二期 |
-| REQ-OFFICE-004 | 综合办公 | s4_office / pc-office | 待 S2 分配 | 出差申请流程 | 待创建 | 二期 |
-| REQ-OFFICE-005 | 综合办公 | s4_office / pc-office | 待 S2 分配 | 资产管理 | 待创建 | 二期 |
-| REQ-OFFICE-006 | 综合办公 | s4_office / pc-office | 待 S2 分配 | 资产领用 | 待创建 | 二期 |
-| REQ-OFFICE-007 | 综合办公 | s4_office / pc-office | 待 S2 分配 | 办公用品出入库 | 待创建 | 二期 |
-| REQ-OFFICE-008 | 综合办公 | s4_office / pc-office | 待 S5 分配 | 智慧考勤打卡 | 待创建 | 三期 |
+| REQ-PORTAL-001 | 门户 | s1_portal / pc-portal | 待 S1 分配 | 门户首页 | 待创建 | 一期 |
+| REQ-PORTAL-002 | 门户 | s1_portal / pc-portal | 待 S1 分配 | 消息提醒 | 待创建 | 一期 |
+| REQ-PORTAL-003 | 门户 | s1_portal / pc-portal | 待 S1 分配 | 应用入口 | 待创建 | 一期 |
+| REQ-PORTAL-004 | 门户 | s1_portal / pc-portal | 待 S1 分配 | 工作台 | 待创建 | 一期 |
+| REQ-PORTAL-005 | 门户 | s1_portal / pc-portal | 待 S1 分配 | 搜索 | 待创建 | 一期 |
+| REQ-INFO-001 | 信息发布 | s2_document / pc-info | 待 S1 分配 | 栏目管理 | 待创建 | 一期 |
+| REQ-INFO-002 | 信息发布 | s2_document / pc-info | 待 S1 分配 | 文章管理 | 待创建 | 一期 |
+| REQ-INFO-003 | 信息发布 | s2_document / pc-info | 待 S1 分配 | 草稿 | 待创建 | 一期 |
+| REQ-INFO-004 | 信息发布 | s2_document / pc-info | 待 S1 分配 | 提交审核 | 待创建 | 一期 |
+| REQ-INFO-005 | 信息发布 | s2_document / pc-info | 待 S1 分配 | 审核通过 | 待创建 | 一期 |
+| REQ-INFO-006 | 信息发布 | s2_document / pc-info | 待 S1 分配 | 驳回 | 待创建 | 一期 |
+| REQ-NOTICE-001 | 通知公告 | s2_document / pc-notice | 待 S1 分配 | 公告 CRUD | 待创建 | 一期 |
+| REQ-NOTICE-002 | 通知公告 | s2_document / pc-notice | 待 S1 分配 | 发布/撤回 | 待创建 | 一期 |
+| REQ-NOTICE-003 | 通知公告 | s2_document / pc-notice | 待 S1 分配 | 置顶 | 待创建 | 一期 |
+| REQ-NOTICE-004 | 通知公告 | s2_document / pc-notice | 待 S1 分配 | 阅读统计 | 待创建 | 一期 |
+| REQ-DOC-001 | 公文管理 | s2_document / pc-document | 待 S1 分配 | 发文起草 | 待创建 | 一期 |
+| REQ-DOC-002 | 公文管理 | s2_document / pc-document | 待 S1 分配 | 发文提交审批 | 待创建 | 一期 |
+| REQ-DOC-003 | 公文管理 | s2_document / pc-document | 待 S1 分配 | 自动文号 | 待创建 | 一期 |
+| REQ-DOC-004 | 公文管理 | s2_document / pc-document | 待 S1 分配 | 收文登记 | 待创建 | 一期 |
+| REQ-DOC-005 | 公文管理 | s2_document / pc-document | 待 S2 分配 | 发文归档 | 待创建 | 二期 |
+| REQ-DOC-006 | 公文管理 | s2_document / pc-document | 待 S2 分配 | 公文统计 | 待创建 | 二期 |
+| REQ-EXCHANGE-001 | 公文交换 | s2_document / pc-document | 待 S6 另行规划 | 收文登记/传递 | 待创建 | 三期 |
+| REQ-EXCHANGE-002 | 公文交换 | s2_document / pc-document | 待 S6 另行规划 | 收文查询 | 待创建 | 三期 |
+| REQ-EXCHANGE-003 | 公文交换 | s2_document / pc-document | 待 S6 另行规划 | 发文传输基础 | 待创建 | 三期 |
+| REQ-OFFICE-001 | 综合办公 | s3_office / pc-office | 待 S1 分配 | 用车申请流程 | 待创建 | 一期 |
+| REQ-OFFICE-002 | 综合办公 | s3_office / pc-office | 待 S1 分配 | 请休假申请流程 | 待创建 | 一期 |
+| REQ-OFFICE-003 | 综合办公 | s3_office / pc-office | 待 S1 分配 | 用印申请流程 | 待创建 | 一期 |
+| REQ-OFFICE-004 | 综合办公 | s3_office / pc-office | 待 S1 分配 | 出差申请流程 | 待创建 | 一期 |
+| REQ-OFFICE-005 | 综合办公 | s3_office / pc-office | 待 S2 分配 | 资产管理 | 待创建 | 二期 |
+| REQ-OFFICE-006 | 综合办公 | s3_office / pc-office | 待 S2 分配 | 资产领用 | 待创建 | 二期 |
+| REQ-OFFICE-007 | 综合办公 | s3_office / pc-office | 待 S2 分配 | 办公用品出入库 | 待创建 | 二期 |
+| REQ-OFFICE-008 | 综合办公 | s3_office / pc-office | 待 S2 分配 | 智慧考勤打卡 | 待创建 | 二期 |
 | REQ-CONTACTS-001 | 通讯录 | s5_contacts / pc-contacts | 待 S1 分配 | 组织架构 | 待创建 | 一期 |
 | REQ-CONTACTS-002 | 通讯录 | s5_contacts / pc-contacts | 待 S1 分配 | 通讯录树 | 待创建 | 一期 |
 | REQ-CONTACTS-003 | 通讯录 | s5_contacts / pc-contacts | 待 S1 分配 | 联系人搜索与详情 | 待创建 | 一期 |
@@ -51,7 +53,7 @@ status: active
 | REQ-WORKBENCH-002 | 工作台 | s1_portal / pc-workbench | 待 S1 分配 | 修改密码 | 待创建 | 一期 |
 | REQ-WORKBENCH-003 | 工作台 | s1_portal / pc-workbench | 待 S1 分配 | 待办/已办/办结 | 待创建 | 一期 |
 | REQ-WORKBENCH-004 | 工作台 | s1_portal / pc-workbench | 待 S1 分配 | 我的发起 | 待创建 | 一期 |
-| REQ-WORKBENCH-005 | 工作台 | s1_portal / pc-workbench | 待 S2 分配 | 流程起草 | 待创建 | 二期 |
+| REQ-WORKBENCH-005 | 工作台 | s1_portal / pc-workbench | 待 S1 分配 | 流程起草 | 待创建 | 一期 |
 | REQ-WORKBENCH-006 | 工作台 | s1_portal / pc-workbench | 待 S2 分配 | 委托授权（转办） | 待创建 | 二期 |
 | REQ-MOBILE-001 | 移动办公 | mobile / h5-message | 待 S1 分配 | 移动消息 | 待创建 | 一期 |
 | REQ-MOBILE-002 | 移动办公 | mobile / h5-notice | 待 S1 分配 | 移动公告 | 待创建 | 一期 |
@@ -60,23 +62,34 @@ status: active
 | REQ-MOBILE-005 | 移动办公 | mobile / h5-contacts | 待 S2 分配 | 移动通讯录 | 待创建 | 二期 |
 | REQ-MOBILE-006 | 移动办公 | mobile / h5-mine | 待 S2 分配 | 移动个人设置 | 待创建 | 二期 |
 | REQ-PLATFORM-001 | 应用支撑平台 | s0_xtsz / pc-system | 待 S1 分配 | 身份认证（JWT） | 待创建 | 一期 |
-| REQ-PLATFORM-002 | 应用支撑平台 | s0_xtsz / pc-system | 待 S2 分配 | 权限管理（RBAC + 菜单/按钮） | 待创建 | 二期 |
-| REQ-PLATFORM-003 | 应用支撑平台 | s0_xtsz / pc-system | 待 S2 分配 | 组织架构 | 待创建 | 二期 |
-| REQ-PLATFORM-004 | 应用支撑平台 | s0_xtsz / pc-system | 待 S2 分配 | 成员管理 | 待创建 | 二期 |
-| REQ-PLATFORM-005 | 应用支撑平台 | s0_xtsz / pc-system | 待 S2 分配 | 日志管理 | 待创建 | 二期 |
-| REQ-PLATFORM-006 | 应用支撑平台 | s0_xtsz / pc-system | 待 S2 分配 | 文件服务 | 待创建 | 二期 |
-| REQ-PLATFORM-007 | 应用支撑平台 | s4_workflow / pc-system | 待 S5 分配 | 流程管理 | 待创建 | 三期 |
-| REQ-PLATFORM-008 | 应用支撑平台 | s0_xtsz / pc-system | 待 S5 分配 | 水印/安全策略 | 待创建 | 三期 |
+| REQ-PLATFORM-002 | 应用支撑平台 | s0_xtsz / pc-system | 待 S1 分配 | 权限管理（RBAC + 菜单/按钮） | 待创建 | 一期 |
+| REQ-PLATFORM-003 | 应用支撑平台 | s0_xtsz / pc-system | 待 S1 分配 | 组织架构 | 待创建 | 一期 |
+| REQ-PLATFORM-004 | 应用支撑平台 | s0_xtsz / pc-system | 待 S1 分配 | 成员管理 | 待创建 | 一期 |
+| REQ-PLATFORM-005 | 应用支撑平台 | s0_xtsz / pc-system | 待 S1 分配 | 日志管理 | 待创建 | 一期 |
+| REQ-PLATFORM-006 | 应用支撑平台 | s0_xtsz / pc-system | 待 S1 分配 | 文件服务 | 待创建 | 一期 |
+| REQ-PLATFORM-007 | 应用支撑平台 | s4_workflow / pc-system | 待 S1 分配 | 流程管理 | 待创建 | 一期 |
+| REQ-PLATFORM-008 | 应用支撑平台 | s0_xtsz / pc-system | 待 S6 另行规划 | 水印/安全策略 | 待创建 | 三期 |
 
 ## 统计
 
-- 一期：31 项
-- 二期：13 项
-- 三期：9 项
-- 总计：53 项
+- 一期：42 项
+- 二期：7 项
+- 三期：6 项
+- 总计：55 项
+
+> 说明：本表已按 `功能开发清单.xlsx` 的“阶段”列和 `系统导图.md` 校正用印、出差、智慧考勤、权限管理、组织架构、成员管理、日志管理、文件服务、流程管理、流程起草和公文交换的映射。校正后统计为 42/7/6，与系统导图汇总的一期 31、二期 14、三期 8 不一致，说明当前需求追踪矩阵仍存在与功能清单口径不一致的条目。该差异已记录为 `needs-review`，由 WP-006 重新核对功能清单并冻结最终基线。
+
+## 待复核项
+
+以下需求在 WP-006 中需要与功能清单重新核对阶段或业务包映射：
+
+- 部分 一期 条目可能应归属 二期（如应用支撑平台中的统一认证、应用中心、统一待办、统一搜索、登录黑白名单、安全审计等）。
+- 部分 二期 条目可能应归属 一期或三期。
+- 总计数与功能清单 53 不一致，需确认是否存在未映射或重复条目。
 
 ## 说明
 
-- 业务包名称 `s0_xtsz`、`s1_portal` 等为暂定编码，需经 ADR 与领域地图确认。
+- 业务包名称 `s0_xtsz`、`s1_portal`、`s2_document`、`s3_office`、`s4_workflow`、`s5_contacts` 等为 S1 候选编码，需经 G1 批准。
 - 工作包、验收标准和测试证据将在 S1-S5 阶段逐步细化。
 - 三期需求当前仅保留映射，不进入当前实施工作包。
+- 公文交换（REQ-EXCHANGE-001～003）和水印/安全策略（REQ-PLATFORM-008）为 `deferred`，不分配 S1～S5 工作包。

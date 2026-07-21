@@ -6,6 +6,8 @@ status: active
 
 本目录是 demoAi 仓库的文档真源。所有受文档一致性验证约束的 Markdown 文件均包含 `status` 元数据。
 
+当前阶段、活动门禁和工作包状态以 `docs/execution/STATE.json` 为唯一真源。
+
 ## 产品真源
 
 - [`product/GOAL.md`](./product/GOAL.md) — 总目标、成功标准、范围、不在范围、外部依赖、已知风险、完成定义
@@ -27,6 +29,7 @@ status: active
 - [`execution/STATE.json`](./execution/STATE.json) — 机器可读执行状态
 - [`execution/work-packages/`](./execution/work-packages/) — 工作包规范
 - [`execution/evidence/`](./execution/evidence/) — 工作包完成证据
+- [`execution/gates/`](./execution/gates/) — 门禁批准证据
 
 ## 质量体系
 
@@ -35,6 +38,11 @@ status: active
 ## 运维体系
 
 - [`operations/README.md`](./operations/README.md) — 运维文档边界、当前状态与后续工作包
+
+## 工作包索引
+
+- S0：WP-000～WP-005（已归档于 `execution/evidence/`）
+- S1：WP-006 需求基线与阶段映射、WP-007 领域地图与业务包边界、WP-008 核心技术与架构 ADR、WP-009 API/安全/非功能基线、WP-010 G1 门禁材料汇总
 
 ## 遗留参考
 

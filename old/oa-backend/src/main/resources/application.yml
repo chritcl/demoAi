@@ -34,7 +34,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:oa_platform}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: ${MYSQL_USERNAME:oa_user}
-    password: ${MYSQL_PASSWORD}
+    password: ${REDIS_PASSWORD}
     druid:
       initial-size: 5
       min-idle: 5
@@ -51,7 +51,7 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
-      password: ${MYSQL_PASSWORD}
+      password: ${REDIS_PASSWORD}
 
 # MyBatis-Plus
 mybatis-plus:
@@ -106,4 +106,3 @@ logging:
   level:
     com.oa.platform: debug
     org.springframework.security: info
-

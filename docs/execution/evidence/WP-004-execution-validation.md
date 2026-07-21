@@ -25,14 +25,12 @@ node tools/execution/validate.mjs
 git diff --check
 ```
 
-## 验证结果
-
-- 待运行后更新
+## 验证结果\n\n- 通过：0 个错误，1 个警告\n- 警告：遗留文件 old/oa-backend/src/main/java/com/oa/platform/common/constant/Constants.java 包含默认账号密码引用，已在 WP-000 审计中作为遗留参考登记
 
 ## Git 提交
 
 - 提交信息：`ci(WP-004): validate execution contracts`
-- SHA：待提交后补充
+- SHA：de4918eb2715ded3be143b53692379b22308e44e
 
 ## 已知风险
 

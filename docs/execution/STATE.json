@@ -65,7 +65,7 @@
       "id": "WP-004",
       "title": "Execution system auto-validation",
       "stage": "S0",
-      "status": "in_progress",
+      "status": "done",
       "priority": 4,
       "risk": "medium",
       "depends_on": [
@@ -73,8 +73,8 @@
         "WP-003"
       ],
       "spec": "docs/execution/work-packages/WP-004-execution-validation.md",
-      "evidence": null,
-      "completed_at": null
+      "evidence": "docs/execution/evidence/WP-004-execution-validation.md",
+      "completed_at": "2026-07-21T22:23:26.2751869+08:00"
     }
   ],
   "gates": [
@@ -82,7 +82,7 @@
       "id": "G0",
       "stage": "S0",
       "type": "hybrid",
-      "status": "pending"
+      "status": "waiting_human"
     },
     {
       "id": "G1",
@@ -122,5 +122,5 @@
     }
   ],
   "blocked_reasons": [],
-  "last_completed_work_package": "WP-001"
+  "last_completed_work_package": "WP-004"
 }

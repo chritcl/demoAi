@@ -36,15 +36,15 @@
       "id": "WP-002",
       "title": "Codex execution protocol",
       "stage": "S0",
-      "status": "in_progress",
+      "status": "done",
       "priority": 2,
       "risk": "high",
       "depends_on": [
         "WP-001"
       ],
       "spec": "docs/execution/work-packages/WP-002-execution-protocol.md",
-      "evidence": null,
-      "completed_at": null
+      "evidence": "docs/execution/evidence/WP-002-execution-protocol.md",
+      "completed_at": "2026-07-21T22:15:03.8807450+08:00"
     },
     {
       "id": "WP-003",

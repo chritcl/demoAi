@@ -38,7 +38,7 @@ git diff --check
 ## Git 提交
 
 - 提交信息：`docs(WP-002): add Codex execution protocol`
-- SHA：待提交后补充
+- SHA：e218f05744fd790b7a95cdfb62683e38ce33cd7c
 
 ## 已知风险
 

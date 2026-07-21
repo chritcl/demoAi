@@ -22,21 +22,21 @@
       "id": "WP-001",
       "title": "Rebuild documentation source of truth",
       "stage": "S0",
-      "status": "ready",
+      "status": "done",
       "priority": 1,
       "risk": "high",
       "depends_on": [
         "WP-000"
       ],
       "spec": "docs/execution/work-packages/WP-001-documentation-source-of-truth.md",
-      "evidence": null,
-      "completed_at": null
+      "evidence": "docs/execution/evidence/WP-001-documentation-source-of-truth.md",
+      "completed_at": "2026-07-21T21:52:13"
     },
     {
       "id": "WP-002",
       "title": "Codex execution protocol",
       "stage": "S0",
-      "status": "draft",
+      "status": "ready",
       "priority": 2,
       "risk": "high",
       "depends_on": [
@@ -122,5 +122,5 @@
     }
   ],
   "blocked_reasons": [],
-  "last_completed_work_package": "WP-000"
+  "last_completed_work_package": "WP-001"
 }

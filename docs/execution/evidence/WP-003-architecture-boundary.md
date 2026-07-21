@@ -36,7 +36,7 @@ git diff --check
 ## Git 提交
 
 - 提交信息：`docs(WP-003): add architecture boundary and ADR backlog`
-- SHA：待提交后补充
+- SHA：8bec4623b9c3504e88eaeabea412bf68397d6ead
 
 ## 已知风险
 

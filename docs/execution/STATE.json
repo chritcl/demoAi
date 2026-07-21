@@ -50,7 +50,7 @@
       "id": "WP-003",
       "title": "Architecture boundary and ADR backlog",
       "stage": "S0",
-      "status": "in_progress",
+      "status": "done",
       "priority": 3,
       "risk": "high",
       "depends_on": [
@@ -58,8 +58,8 @@
         "WP-002"
       ],
       "spec": "docs/execution/work-packages/WP-003-architecture-boundary.md",
-      "evidence": null,
-      "completed_at": null
+      "evidence": "docs/execution/evidence/WP-003-architecture-boundary.md",
+      "completed_at": "2026-07-21T22:17:17.3196719+08:00"
     },
     {
       "id": "WP-004",

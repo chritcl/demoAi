@@ -1,7 +1,7 @@
 -- ============================================================
 -- 协同办公平台 (OA Platform) 初始数据
 -- 幂等: 使用 INSERT IGNORE + 显式主键，可重复执行
--- 默认账号: admin / admin123   普通用户: zhangsan / 123456
+-- 默认账号: admin / <REDACTED_DEFAULT_PASSWORD>   普通用户: zhangsan / <REDACTED_DEFAULT_PASSWORD>
 -- ============================================================
 USE oa_platform;
 
@@ -13,12 +13,12 @@ INSERT IGNORE INTO sys_dept (id, parent_id, ancestors, dept_name, sort, leader, 
 (4, 1, '0,1',   '财务部',       3, '赵经理', '13800000003', 'fin@oa.com',   0, NOW());
 
 -- ------------------- 用户 -------------------
--- 密码: admin -> admin123 ; 其余 -> 123456
+-- 密码: 已脱敏，参见 WP-000 审计报告
 INSERT IGNORE INTO sys_user (id, dept_id, username, nickname, password, email, phone, gender, status, pinyin, create_time) VALUES
-(1, 1, 'admin',     '超级管理员', '$2a$10$q.f1UOMNt53mnQWjfBBbkuLV536XxhSp84kDrtw1ZDg0OImM6WoHO', 'admin@oa.com',  '13800000000', 0, 0, 'guanliyuan', NOW()),
-(2, 2, 'zhangsan',  '张三',       '$2a$10$paSCL4.bf5n4CLyY0ROwwemiVi0VKxptbUsqjTitTY1HpyFR2Zcru', 'zhangsan@oa.com','13800000001', 0, 0, 'zhangsan',  NOW()),
-(3, 2, 'lisi',      '李四',       '$2a$10$paSCL4.bf5n4CLyY0ROwwemiVi0VKxptbUsqjTitTY1HpyFR2Zcru', 'lisi@oa.com',    '13800000002', 1, 0, 'lisi',      NOW()),
-(4, 3, 'wangwu',    '王五',       '$2a$10$paSCL4.bf5n4CLyY0ROwwemiVi0VKxptbUsqjTitTY1HpyFR2Zcru', 'wangwu@oa.com',  '13800000003', 0, 0, 'wangwu',    NOW());
+(1, 1, 'admin',     '超级管理员', '<REDACTED_PASSWORD_HASH>', 'admin@oa.com',  '13800000000', 0, 0, 'guanliyuan', NOW()),
+(2, 2, 'zhangsan',  '张三',       '<REDACTED_PASSWORD_HASH>', 'zhangsan@oa.com','13800000001', 0, 0, 'zhangsan',  NOW()),
+(3, 2, 'lisi',      '李四',       '<REDACTED_PASSWORD_HASH>', 'lisi@oa.com',    '13800000002', 1, 0, 'lisi',      NOW()),
+(4, 3, 'wangwu',    '王五',       '<REDACTED_PASSWORD_HASH>', 'wangwu@oa.com',  '13800000003', 0, 0, 'wangwu',    NOW());
 
 -- ------------------- 角色 -------------------
 INSERT IGNORE INTO sys_role (id, role_name, role_key, sort, status, data_scope, create_time) VALUES
@@ -240,3 +240,4 @@ INSERT IGNORE INTO office_asset (id, asset_code, asset_name, category, spec, uni
 (1, 'AS-2026-0001', '笔记本电脑', 'electronic', 'ThinkPad T14', '台', 1, 8000.00, '技术部办公区', 2, 2, 1, NOW()),
 (2, 'AS-2026-0002', '台式电脑',   'electronic', '联想启天',     '台', 1, 3500.00, '人事部办公区', 3, 4, 1, NOW()),
 (3, 'AS-2026-0003', '打印机',     'electronic', 'HP LaserJet',  '台', 1, 2500.00, '公共区域',     1, NULL, 1, NOW());
+

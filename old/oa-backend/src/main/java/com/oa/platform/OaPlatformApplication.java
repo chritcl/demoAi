@@ -33,7 +33,7 @@ public class OaPlatformApplication {
                 ====================================================
                   协同办公平台后端启动成功 (OA Platform Backend)
                   API 文档: http://localhost:10001/doc.html
-                  默认账号: admin / admin123
+                  默认账号: admin / <REDACTED_DEFAULT_PASSWORD>
                 ====================================================""");
     }
 
@@ -135,3 +135,4 @@ public class OaPlatformApplication {
         }
     }
 }
+

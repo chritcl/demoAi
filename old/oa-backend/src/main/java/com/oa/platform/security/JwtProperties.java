@@ -17,7 +17,7 @@ import java.time.temporal.ChronoUnit;
 public class JwtProperties {
 
     /** 签名密钥 */
-    private String secret = "oa-platform-secret-key";
+    private String secret = "${JWT_SECRET}";
 
     /** token 有效期（默认单位：分钟） */
     @DurationUnit(ChronoUnit.MINUTES)
@@ -29,3 +29,4 @@ public class JwtProperties {
     /** token 前缀 */
     private String tokenPrefix = "Bearer ";
 }
+

@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "goal_id": "GOAL-001",
+  "goal_status": "approved",
+  "active_stage": "S0",
+  "active_gate": null,
+  "auto_continue_until_gate": true,
+  "work_packages": [
+    {
+      "id": "WP-000",
+      "title": "Repository audit and credential remediation",
+      "stage": "S0",
+      "status": "done",
+      "priority": 0,
+      "risk": "critical",
+      "depends_on": [],
+      "spec": "docs/execution/work-packages/WP-000-repository-audit.md",
+      "evidence": "docs/execution/evidence/WP-000-repository-audit.md",
+      "completed_at": "2026-07-21T21:45:23"
+    },
+    {
+      "id": "WP-001",
+      "title": "Rebuild documentation source of truth",
+      "stage": "S0",
+      "status": "ready",
+      "priority": 1,
+      "risk": "high",
+      "depends_on": [
+        "WP-000"
+      ],
+      "spec": "docs/execution/work-packages/WP-001-documentation-source-of-truth.md",
+      "evidence": null,
+      "completed_at": null
+    },
+    {
+      "id": "WP-002",
+      "title": "Codex execution protocol",
+      "stage": "S0",
+      "status": "draft",
+      "priority": 2,
+      "risk": "high",
+      "depends_on": [
+        "WP-001"
+      ],
+      "spec": "docs/execution/work-packages/WP-002-execution-protocol.md",
+      "evidence": null,
+      "completed_at": null
+    },
+    {
+      "id": "WP-003",
+      "title": "Architecture boundary and ADR backlog",
+      "stage": "S0",
+      "status": "draft",
+      "priority": 3,
+      "risk": "high",
+      "depends_on": [
+        "WP-001",
+        "WP-002"
+      ],
+      "spec": "docs/execution/work-packages/WP-003-architecture-boundary.md",
+      "evidence": null,
+      "completed_at": null
+    },
+    {
+      "id": "WP-004",
+      "title": "Execution system auto-validation",
+      "stage": "S0",
+      "status": "draft",
+      "priority": 4,
+      "risk": "medium",
+      "depends_on": [
+        "WP-002",
+        "WP-003"
+      ],
+      "spec": "docs/execution/work-packages/WP-004-execution-validation.md",
+      "evidence": null,
+      "completed_at": null
+    }
+  ],
+  "gates": [
+    {
+      "id": "G0",
+      "stage": "S0",
+      "type": "hybrid",
+      "status": "pending"
+    },
+    {
+      "id": "G1",
+      "stage": "S1",
+      "type": "human",
+      "status": "pending"
+    },
+    {
+      "id": "G2",
+      "stage": "S2",
+      "type": "automatic",
+      "status": "pending"
+    },
+    {
+      "id": "G3",
+      "stage": "S3",
+      "type": "human",
+      "status": "pending"
+    },
+    {
+      "id": "G4",
+      "stage": "S4",
+      "type": "automatic",
+      "status": "pending"
+    },
+    {
+      "id": "G5",
+      "stage": "S5",
+      "type": "automatic",
+      "status": "pending"
+    },
+    {
+      "id": "G6",
+      "stage": "S6",
+      "type": "human",
+      "status": "pending"
+    }
+  ],
+  "blocked_reasons": [],
+  "last_completed_work_package": "WP-000"
+}

@@ -29,7 +29,7 @@
             </div>
           </el-form-item>
           <el-button type="primary" size="large" :loading="loading" class="login-btn" @click="handleLogin">登 录</el-button>
-          <div class="tips">默认账号：admin / admin123 &nbsp;|&nbsp; zhangsan / 123456</div>
+          <div class="tips">默认账号：admin / <REDACTED> &nbsp;|&nbsp; zhangsan / <REDACTED></div>
         </el-form>
       </div>
     </div>
@@ -51,7 +51,7 @@ const formRef = ref()
 const loading = ref(false)
 const captcha = reactive({ enabled: false, img: '', uuid: '' })
 
-const form = reactive({ username: 'admin', password: 'admin123', code: '', uuid: '' })
+const form = reactive({ username: 'admin', password: '<REDACTED_DEFAULT_PASSWORD>', code: '', uuid: '' })
 
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
@@ -137,3 +137,4 @@ onMounted(() => {
 .login-btn { width: 100%; margin-top: 6px; }
 .tips { margin-top: 16px; text-align: center; font-size: 12px; color: #909399; }
 </style>
+

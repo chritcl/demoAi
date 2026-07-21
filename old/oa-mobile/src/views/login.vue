@@ -17,7 +17,7 @@
       <div style="margin: 16px">
         <van-button round block type="primary" native-type="submit" :loading="loading">登 录</van-button>
       </div>
-      <p class="tip">默认：admin / admin123</p>
+      <p class="tip">默认：admin / <REDACTED_DEFAULT_PASSWORD></p>
     </van-form>
   </div>
 </template>
@@ -33,7 +33,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 const captcha = reactive({ enabled: false, img: '', uuid: '' })
-const form = reactive({ username: 'admin', password: 'admin123', code: '' })
+const form = reactive({ username: 'admin', password: '<REDACTED_DEFAULT_PASSWORD>', code: '' })
 
 async function loadCaptcha() {
   const res = await getCaptcha()
@@ -65,3 +65,4 @@ onMounted(loadCaptcha)
 .cap { width: 100px; height: 36px; }
 .tip { text-align: center; color: #969799; font-size: 12px; }
 </style>
+

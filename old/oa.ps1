@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   协同办公平台 一键启停脚本 (PowerShell)
 .DESCRIPTION
@@ -57,7 +57,7 @@ function Start-Oa {
   }
   Write-Host ''
   Write-Host '  后端 API 文档: http://localhost:10001/doc.html'
-  Write-Host '  默认账号: admin / admin123' -ForegroundColor Cyan
+  Write-Host '  默认账号: admin / <REDACTED_DEFAULT_PASSWORD>' -ForegroundColor Cyan
   Write-Host '  后端首次启动约需 20-40 秒。'
 }
 
@@ -99,3 +99,4 @@ switch ($Action) {
   'status'  { Show-OaStatus }
   default   { Show-OaUsage }
 }
+

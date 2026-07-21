@@ -83,7 +83,7 @@ async function load() {
 function onSearch() { query.pageNum = 1; load() }
 function reset() { query.username = ''; query.phone = ''; query.status = undefined; onSearch() }
 
-async function openAdd() { form.data = { gender: 0, status: 0, roleIds: [], password: '123456' }; form.visible = true }
+async function openAdd() { form.data = { gender: 0, status: 0, roleIds: [], password: '<REDACTED_DEFAULT_PASSWORD>' }; form.visible = true }
 async function openEdit(row) {
   const [d, r] = await Promise.all([getUser(row.id), getUserRoles(row.id)])
   form.data = { ...d.data, roleIds: r.data || [] }
@@ -113,3 +113,4 @@ onMounted(async () => {
   const dres = await deptTree({ status: 0 }); deptOpts.value = dres.data || []; deptList.value = flattenDept(deptOpts.value, [])
 })
 </script>
+

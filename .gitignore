@@ -1,24 +1,31 @@
-# ===== 前端项目 (oa-frontend) =====
-oa-frontend/node_modules
-oa-frontend/dist
-oa-frontend/package-lock.json
-oa-frontend/.env.local
-oa-frontend/.env.*.local
+# ===== 根级锁定文件（必须受版本控制） =====
+# pnpm-lock.yaml 不再忽略，作为根级统一锁文件
+# 禁止生成 package-lock.json
+package-lock.json
 
-# ===== 移动端项目 (oa-mobile) =====
-oa-mobile/node_modules
-oa-mobile/dist
-oa-mobile/package-lock.json
-oa-mobile/.env.local
-oa-mobile/.env.*.local
+# ===== 前端构建产物（当前或未来根级项目） =====
+node_modules
+dist
+*.local
+.env.local
+.env.*.local
 
-# ===== 后端项目 (oa-backend) =====
-oa-backend/target
-oa-backend/*.class
-oa-backend/*.jar
-oa-backend/*.war
-oa-backend/.idea
-oa-backend/*.iml
+# ===== 后端构建产物（当前或未来根级项目） =====
+target
+*.class
+*.jar
+*.war
+
+# ===== 遗留参考区生成产物与锁文件 =====
+old/**/node_modules
+old/**/dist
+old/**/target
+old/**/*.class
+old/**/*.jar
+old/**/*.war
+old/**/package-lock.json
+old/**/.env.local
+old/**/.env.*.local
 
 # ===== 系统/编辑器通用 =====
 .DS_Store
@@ -29,7 +36,3 @@ Thumbs.db
 .idea
 .vscode
 *.iml
-
-# ===== 根目录锁文件 =====
-pnpm-lock.yaml
-package-lock.json

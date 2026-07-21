@@ -82,7 +82,7 @@ public class SysUserService {
         if (count > 0) {
             throw new BusinessException(ResultCode.DATA_EXISTS, "用户名已存在");
         }
-        String pwd = (dto.getPassword() == null || dto.getPassword().isBlank()) ? "123456" : dto.getPassword();
+        String pwd = (dto.getPassword() == null || dto.getPassword().isBlank()) ? "<REDACTED_DEFAULT_PASSWORD>" : dto.getPassword();
         dto.setPassword(passwordEncoder.encode(pwd));
         dto.setPinyin(PinyinUtil.toPinyin(dto.getNickname()));
         userMapper.insert(dto);
@@ -167,3 +167,4 @@ public class SysUserService {
         userMapper.updateById(update);
     }
 }
+

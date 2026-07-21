@@ -2,8 +2,8 @@
   "schema_version": 1,
   "goal_id": "GOAL-001",
   "goal_status": "approved",
-  "active_stage": "S0",
-  "active_gate": "G0",
+  "active_stage": "S1",
+  "active_gate": "G1",
   "auto_continue_until_gate": true,
   "work_packages": [
     {
@@ -82,7 +82,7 @@
       "id": "G0",
       "stage": "S0",
       "type": "hybrid",
-      "status": "waiting_human"
+      "status": "approved"
     },
     {
       "id": "G1",

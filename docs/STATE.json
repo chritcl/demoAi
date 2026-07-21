@@ -1,0 +1,94 @@
+{
+  "goal": "GOAL-001",
+  "stage": "S0",
+  "gate": null,
+  "auto_continue": true,
+  "current_work_package": null,
+  "work_packages": [
+    {
+      "id": "WP-01",
+      "stage": "S1",
+      "status": "draft",
+      "depends_on": [],
+      "spec": "docs/work-packages/WP-01.md"
+    },
+    {
+      "id": "WP-02",
+      "stage": "S1",
+      "status": "draft",
+      "depends_on": ["WP-01"],
+      "spec": "docs/work-packages/WP-02.md"
+    },
+    {
+      "id": "WP-03",
+      "stage": "S1",
+      "status": "draft",
+      "depends_on": ["WP-02"],
+      "spec": "docs/work-packages/WP-03.md"
+    },
+    {
+      "id": "WP-04",
+      "stage": "S1",
+      "status": "draft",
+      "depends_on": ["WP-02"],
+      "spec": "docs/work-packages/WP-04.md"
+    },
+    {
+      "id": "WP-05",
+      "stage": "S2",
+      "status": "draft",
+      "depends_on": ["WP-02", "WP-03", "WP-04"],
+      "spec": "docs/work-packages/WP-05.md"
+    },
+    {
+      "id": "WP-06",
+      "stage": "S2",
+      "status": "draft",
+      "depends_on": ["WP-03", "WP-04", "WP-05"],
+      "spec": "docs/work-packages/WP-06.md"
+    },
+    {
+      "id": "WP-07",
+      "stage": "S2",
+      "status": "draft",
+      "depends_on": ["WP-03", "WP-04", "WP-05"],
+      "spec": "docs/work-packages/WP-07.md"
+    },
+    {
+      "id": "WP-08",
+      "stage": "S2",
+      "status": "draft",
+      "depends_on": ["WP-03", "WP-04", "WP-05"],
+      "spec": "docs/work-packages/WP-08.md"
+    },
+    {
+      "id": "WP-09",
+      "stage": "S2",
+      "status": "draft",
+      "depends_on": ["WP-05", "WP-06", "WP-07", "WP-08"],
+      "spec": "docs/work-packages/WP-09.md"
+    },
+    {
+      "id": "WP-10",
+      "stage": "S3",
+      "status": "draft",
+      "depends_on": ["WP-03", "WP-08"],
+      "spec": "docs/work-packages/WP-10.md"
+    },
+    {
+      "id": "WP-11",
+      "stage": "S3",
+      "status": "draft",
+      "depends_on": ["WP-05", "WP-06", "WP-07", "WP-08"],
+      "spec": "docs/work-packages/WP-11.md"
+    },
+    {
+      "id": "WP-12",
+      "stage": "S4",
+      "status": "draft",
+      "depends_on": ["WP-09", "WP-10", "WP-11"],
+      "spec": "docs/work-packages/WP-12.md"
+    }
+  ],
+  "blocked_reason": null
+}

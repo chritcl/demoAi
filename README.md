@@ -8,8 +8,8 @@
 - 当前阶段：S0
 - 当前活动门禁：G0（hybrid）
 - 执行分支：`codex/execution-system`
-- 最近完成工作包：WP-000 仓库审计与凭据风险处理
-- 当前工作包：WP-001 文档真源重建
+- 最近完成工作包：WP-001 文档真源重建
+- 当前工作包：WP-002 Codex 执行协议
 
 ## 权威入口
 
@@ -18,7 +18,10 @@
 3. [`docs/execution/STATE.json`](./docs/execution/STATE.json) — 机器可读执行状态
 4. [`docs/execution/EXECUTION-PROTOCOL.md`](./docs/execution/EXECUTION-PROTOCOL.md) — 执行协议
 5. [`docs/execution/STAGE-GATES.md`](./docs/execution/STAGE-GATES.md) — 阶段与门禁
-6. [`docs/README.md`](./docs/README.md) — 文档导航
+6. [`docs/execution/WORK-PACKAGE-TEMPLATE.md`](./docs/execution/WORK-PACKAGE-TEMPLATE.md) — 工作包模板
+7. [`docs/execution/ROADMAP.md`](./docs/execution/ROADMAP.md) — 路线图
+8. [`docs/execution/EVIDENCE-FORMAT.md`](./docs/execution/EVIDENCE-FORMAT.md) — 证据格式
+9. [`docs/README.md`](./docs/README.md) — 文档导航
 
 ## 如何恢复 Codex 执行
 
@@ -53,6 +56,7 @@ Codex 新会话启动后，按以下顺序读取：
 - [文档总览](./docs/README.md)
 - [产品目标与范围](./docs/product/GOAL.md)
 - [执行协议](./docs/execution/EXECUTION-PROTOCOL.md)
+- [阶段与门禁](./docs/execution/STAGE-GATES.md)
 - [遗留参考策略](./docs/legacy/LEGACY-REFERENCE-POLICY.md)
 - [旧代码参考](./old/README.md)
 

@@ -3,7 +3,7 @@
   "goal_id": "GOAL-001",
   "goal_status": "approved",
   "active_stage": "S0",
-  "active_gate": null,
+  "active_gate": "G0",
   "auto_continue_until_gate": true,
   "work_packages": [
     {
@@ -36,7 +36,7 @@
       "id": "WP-002",
       "title": "Codex execution protocol",
       "stage": "S0",
-      "status": "ready",
+      "status": "in_progress",
       "priority": 2,
       "risk": "high",
       "depends_on": [

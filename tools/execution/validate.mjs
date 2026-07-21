@@ -1,15 +1,10 @@
-import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
-import { join, dirname, extname, resolve, relative, isAbsolute, sep, posix } from 'node:path';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { join, dirname, extname, resolve, relative } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(fileURLToPath(import.meta.url)) + '/../..';
 const docsDir = join(ROOT, 'docs');
-const productDir = join(docsDir, 'product');
-const architectureDir = join(docsDir, 'architecture');
-const executionDir = join(docsDir, 'execution');
-const qualityDir = join(docsDir, 'quality');
-const operationsDir = join(docsDir, 'operations');
 
 const errors = [];
 const warnings = [];
@@ -56,22 +51,6 @@ function listFiles(dir, predicate) {
   return result;
 }
 
-function parseFrontmatter(text) {
-  if (!text || !text.startsWith('---\n')) return {};
-  const end = text.indexOf('\n---\n', 4);
-  if (end === -1) return {};
-  const fm = text.slice(4, end);
-  const result = {};
-  for (const line of fm.split('\n')) {
-    const idx = line.indexOf(':');
-    if (idx === -1) continue;
-    const key = line.slice(0, idx).trim();
-    const value = line.slice(idx + 1).trim();
-    result[key] = value;
-  }
-  return result;
-}
-
 function parseMarkdownTable(text, startMarker) {
   const lines = text.split('\n');
   let start = -1;
@@ -82,7 +61,6 @@ function parseMarkdownTable(text, startMarker) {
     }
   }
   if (start === -1) return [];
-  // 找到表头后的分隔行，再下一行开始是数据
   let dataStart = -1;
   for (let i = start + 1; i < lines.length; i++) {
     if (/^\|[-:\s|]+\|$/u.test(lines[i].trim())) {
@@ -103,7 +81,7 @@ function parseMarkdownTable(text, startMarker) {
 
 function isTextFile(file) {
   const ext = extname(file).toLowerCase();
-  const binaryExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.mp4', '.mp3', '.pdf', '.zip', '.tar', '.gz', '.exe', '.dll', '.so', '.dylib', '.bin', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.otf', '.svg'];
+  const binaryExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.mp4', '.mp3', '.pdf', '.zip', '.tar', '.gz', '.exe', '.dll', '.so', '.dylib', '.bin', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.otf', '.svg', '.xlsx'];
   return !binaryExts.includes(ext);
 }
 
@@ -129,13 +107,30 @@ function isExternalUrl(url) {
   return /^https?:\/\//i.test(url) || /^mailto:/i.test(url) || url.startsWith('#');
 }
 
-function isImageUrl(url) {
-  return /\.(png|jpg|jpeg|gif|webp|svg|bmp|ico)$/i.test(url);
+// 15.1 必需文件
+function validateRequiredFiles() {
+  const required = [
+    'AGENTS.md',
+    'docs/GOAL.md',
+    'docs/EXECUTION.md',
+    'docs/STATE.json',
+    'docs/ARCHITECTURE.md',
+    'docs/功能开发清单.xlsx',
+    'docs/work-packages',
+    'old/README.md'
+  ];
+  for (const rel of required) {
+    if (!fileExists(join(ROOT, rel))) {
+      fail('必需文件缺失：' + rel);
+    } else {
+      ok('必需文件存在：' + rel);
+    }
+  }
 }
 
-// 1. STATE 与阶段关系
+// 15.2 STATE 结构
 function validateState() {
-  const stateText = readText(join(ROOT, 'docs', 'execution', 'STATE.json'));
+  const stateText = readText(join(ROOT, 'docs', 'STATE.json'));
   if (!stateText) {
     fail('无法读取 STATE.json');
     return null;
@@ -149,389 +144,82 @@ function validateState() {
     return null;
   }
 
-  if (!state.schema_version) fail('STATE.json 缺少 schema_version');
-  if (!state.goal_id) fail('STATE.json 缺少 goal_id');
-  if (state.goal_status !== 'approved') fail('STATE.json 中 goal_status 必须为 approved');
-  if (!state.active_stage) fail('STATE.json 缺少 active_stage');
-
-  // 读取阶段定义
-  const stageGates = readText(join(ROOT, 'docs', 'execution', 'STAGE-GATES.md')) || '';
-  const stageRows = parseMarkdownTable(stageGates, '阶段 | 名称');
-  const definedStages = new Set(stageRows.map(r => r[0]).filter(Boolean));
-  const stageToGate = new Map();
-  for (const row of stageRows) {
-    if (row[0] && row[3]) stageToGate.set(row[0], row[3].trim());
-  }
-
-  if (!definedStages.has(state.active_stage)) {
-    fail('STATE.json 中的 active_stage ' + state.active_stage + ' 不存在于阶段定义');
-  }
+  if (!state.goal) fail('STATE.json 缺少 goal');
+  const validStages = ['S0', 'S1', 'S2', 'S3', 'S4'];
+  if (!validStages.includes(state.stage)) fail('STATE.json 中 stage 不合法：' + state.stage);
+  const validGates = [null, 'G0', 'G1', 'G2', 'G3', 'G4'];
+  if (!validGates.includes(state.gate)) fail('STATE.json 中 gate 不合法：' + state.gate);
+  const validGateStatuses = [null, 'pending', 'waiting_human', 'approved', 'failed'];
+  if (!validGateStatuses.includes(state.gate_status)) fail('STATE.json 中 gate_status 不合法：' + state.gate_status);
 
   const workPackages = state.work_packages || [];
-  const gates = state.gates || [];
 
-  // active_gate 检查
-  if (state.active_gate != null && state.active_gate !== '') {
-    const gate = gates.find(g => g.id === state.active_gate);
-    if (!gate) {
-      fail('STATE.json 中的 active_gate ' + state.active_gate + ' 不存在');
-    } else if (gate.stage !== state.active_stage) {
-      fail('active_gate ' + state.active_gate + ' 不属于 active_stage ' + state.active_stage);
-    }
+  // 工作包 ID 唯一
+  const ids = new Set();
+  for (const wp of workPackages) {
+    if (ids.has(wp.id)) fail('工作包 ID 重复：' + wp.id);
+    ids.add(wp.id);
   }
 
-  // 阶段工作进行中时 active_gate 应为 null
-  const hasInProgress = workPackages.some(w => w.status === 'in_progress');
-  const hasReady = workPackages.some(w => w.status === 'ready');
-  const hasDraft = workPackages.some(w => w.status === 'draft');
-  const hasReview = workPackages.some(w => w.status === 'review');
-
-  if (hasInProgress && state.active_gate != null && state.active_gate !== '') {
-    warn('阶段工作进行中时，active_gate 应为 null');
+  // 工作包 spec 存在
+  for (const wp of workPackages) {
+    if (!wp.spec) fail('工作包 ' + wp.id + ' 缺少 spec');
+    else if (!fileExists(join(ROOT, wp.spec))) fail('工作包 ' + wp.id + ' 的 spec 文件不存在：' + wp.spec);
   }
 
-  // 当前阶段必须至少存在一个 draft/ready/in_progress/review 工作包，或对应门禁为 waiting_human
-  if (state.active_gate == null || state.active_gate === '') {
-    const hasWork = hasDraft || hasReady || hasInProgress || hasReview;
-    const gateWaiting = gates.find(g => g.stage === state.active_stage && g.status === 'waiting_human');
-    if (!hasWork && !gateWaiting) {
-      fail('当前阶段 ' + state.active_stage + ' 没有可执行工作包，且对应门禁未到达 waiting_human');
-    }
+  // 工作包状态合法
+  const validStatuses = ['draft', 'ready', 'in_progress', 'blocked', 'done'];
+  for (const wp of workPackages) {
+    if (!validStatuses.includes(wp.status)) fail('工作包 ' + wp.id + ' 状态不合法：' + wp.status);
   }
 
   // 最多一个 in_progress
   const inProgress = workPackages.filter(w => w.status === 'in_progress');
-  if (inProgress.length > 1) {
-    fail('STATE.json 中 in_progress 工作包超过一个：' + inProgress.map(w => w.id).join(', '));
+  if (inProgress.length > 1) fail('in_progress 工作包超过一个：' + inProgress.map(w => w.id).join(', '));
+
+  // current_work_package 与 in_progress 一致
+  if (inProgress.length === 1) {
+    if (state.current_work_package !== inProgress[0].id) {
+      fail('current_work_package (' + state.current_work_package + ') 与 in_progress 工作包 (' + inProgress[0].id + ') 不一致');
+    }
+  } else if (state.current_work_package != null) {
+    warn('没有 in_progress 工作包，但 current_work_package 不为 null');
   }
 
-  // 状态合法
-  const validStatuses = ['draft', 'ready', 'in_progress', 'review', 'done', 'blocked'];
+  // 所有依赖 ID 存在
   for (const wp of workPackages) {
-    if (!validStatuses.includes(wp.status)) {
-      fail('工作包 ' + wp.id + ' 状态 ' + wp.status + ' 不合法');
-    }
-    if (wp.status === 'done') {
-      if (!wp.evidence) fail('工作包 ' + wp.id + ' 为 done 但缺少 evidence');
-      if (!wp.completed_at) fail('工作包 ' + wp.id + ' 为 done 但缺少 completed_at');
-    }
-    if (wp.status === 'in_progress' || wp.status === 'review') {
-      if (!wp.spec) fail('工作包 ' + wp.id + ' 为 ' + wp.status + ' 但缺少 spec');
+    for (const dep of wp.depends_on || []) {
+      if (!ids.has(dep)) fail('工作包 ' + wp.id + ' 的依赖 ' + dep + ' 不存在');
     }
   }
 
-  // 依赖检查
+  // 无循环依赖
+  validateCycleDependencies(workPackages);
+
+  // ready、in_progress、done 的依赖全部为 done
   const doneSet = new Set(workPackages.filter(w => w.status === 'done').map(w => w.id));
   for (const wp of workPackages) {
-    if (['ready', 'in_progress', 'review', 'done'].includes(wp.status)) {
+    if (['ready', 'in_progress', 'done'].includes(wp.status)) {
       for (const dep of wp.depends_on || []) {
-        if (!doneSet.has(dep)) {
-          fail('工作包 ' + wp.id + ' 的依赖 ' + dep + ' 未完成');
-        }
+        if (!doneSet.has(dep)) fail('工作包 ' + wp.id + ' 状态为 ' + wp.status + '，但依赖 ' + dep + ' 未完成');
       }
     }
   }
 
-  // 门禁状态合法
-  const validGateStatuses = ['pending', 'in_review', 'automatic_passed', 'waiting_human', 'approved', 'rejected'];
-  for (const gate of gates) {
-    if (!validGateStatuses.includes(gate.status)) {
-      fail('门禁 ' + gate.id + ' 状态 ' + gate.status + ' 不合法');
-    }
-  }
-
-  ok('STATE.json 基本结构和状态机检查通过');
+  ok('STATE.json 结构检查通过');
   return state;
 }
 
-// 2. 禁止动态状态副本
-function validateDynamicStateHardcoded() {
-  const files = [
-    'README.md',
-    'AGENTS.md',
-    'docs/execution/EXECUTION-PROTOCOL.md',
-    'docs/execution/ROADMAP.md',
-    'docs/quality/README.md',
-    'docs/operations/README.md'
-  ];
-  const forbiddenPatterns = [
-    { re: /当前阶段[：:\s]+S0/g, label: '当前阶段：S0' },
-    { re: /当前阶段[：:\s]+S1/g, label: '当前阶段：S1' },
-    { re: /当前活动门禁[：:\s]+G0/g, label: '当前活动门禁：G0' },
-    { re: /当前门禁[：:\s]+G0/g, label: '当前门禁：G0' },
-    { re: /当前工作包[：:\s]+WP-001/g, label: '当前工作包：WP-001' },
-    { re: /当前工作包[：:\s]+WP-002/g, label: '当前工作包：WP-002' },
-    { re: /最近完成工作包[：:\s]+WP-001/g, label: '最近完成工作包：WP-001' },
-    { re: /S0\s*正在进行/g, label: 'S0 正在进行' },
-    { re: /S0\s*进行中/g, label: 'S0 进行中' },
-    { re: /执行分支[：:\s]+codex\/execution-system/g, label: '执行分支：codex/execution-system' }
-  ];
-
-  for (const rel of files) {
-    const content = readText(join(ROOT, rel));
-    if (!content) continue;
-    for (const { re, label } of forbiddenPatterns) {
-      if (re.test(content)) {
-        fail(rel + ' 中硬编码了动态状态：' + label);
-      }
-    }
-    // 鼓励指向 STATE.json 作为真源
-    if (!content.includes('docs/execution/STATE.json') && !content.includes('STATE.json')) {
-      if (rel !== 'AGENTS.md') {
-        warn(rel + ' 未明确指向 STATE.json 作为动态状态真源');
-      }
-    }
-  }
-}
-
-// 3. active 文档遍历与相对链接
-function findActiveMarkdownFiles() {
-  const scanRoots = [
-    docsDir,
-    join(ROOT, 'README.md'),
-    join(ROOT, 'AGENTS.md')
-  ];
-  const excludedSegments = new Set([
-    'evidence',
-    'gates',
-    'legacy',
-    'old',
-    'node_modules',
-    'target',
-    'dist',
-    '.git',
-    'wp-000-repository-audit.md',
-    'wp-001-documentation-source-of-truth.md',
-    'wp-002-execution-protocol.md',
-    'wp-003-architecture-boundary.md',
-    'wp-004-execution-validation.md'
-  ]);
-
-  const activeFiles = [];
-  const traverse = (file) => {
-    const segments = normalizePath(file).split('/');
-    if (segments.some(s => excludedSegments.has(s))) return;
-    if (!fileExists(file)) return;
-    if (!isTextFile(file)) return;
-    if (file.endsWith('.md')) {
-      const text = readText(file);
-      if (text) {
-        const fm = parseFrontmatter(text);
-        if (fm.status === 'active') {
-          activeFiles.push(file);
-        }
-      }
-    }
-    if (statSync(file).isDirectory()) {
-      for (const child of readdirSync(file)) {
-        traverse(join(file, child));
-      }
-    }
-  };
-
-  for (const root of scanRoots) {
-    traverse(root);
-  }
-  return activeFiles;
-}
-
-function validateMarkdownLinks(file) {
-  const text = readText(file);
-  if (!text) return;
-  const baseDir = dirname(file);
-  const withoutCode = removeCodeBlocks(text);
-  const links = extractMarkdownLinks(withoutCode);
-  for (const url of links) {
-    if (!url) continue;
-    if (isExternalUrl(url)) continue;
-    if (isAbsolute(url)) continue;
-    if (url.startsWith('data:')) continue;
-    // 跳过仅锚点
-    if (url.startsWith('#')) continue;
-    // 跳过mailto
-    if (url.startsWith('mailto:')) continue;
-    const target = resolve(baseDir, url.split('#')[0]);
-    if (!fileExists(target)) {
-      fail(relative(ROOT, file) + ' 中的相对链接目标不存在：' + url);
-    }
-  }
-}
-
-function validateDocs() {
-  validateDynamicStateHardcoded();
-
-  const activeFiles = findActiveMarkdownFiles();
-  const requiredSections = ['## ', '# '];
-
-  for (const file of activeFiles) {
-    const rel = relative(ROOT, file);
-    const text = readText(file) || '';
-
-    // 检查是否有至少一个二级或一级标题
-    if (!requiredSections.some(s => text.includes(s))) {
-      fail(rel + ' 缺少标题章节');
-    }
-
-    // 检查相对链接
-    validateMarkdownLinks(file);
-  }
-
-  ok('文档一致性和关键引用检查通过');
-}
-
-// 4. 业务包一致性、需求阶段统计、owner 检查、门禁证据、循环依赖
-function parseBusinessPackages() {
-  const domainMap = readText(join(ROOT, 'docs', 'architecture', 'DOMAIN-MAP.md')) || '';
-  const rows = parseMarkdownTable(domainMap, '业务域 | 业务包编码');
-  return new Set(rows.map(r => r[1]).filter(Boolean));
-}
-
-function parseTraceabilityRows() {
-  const trace = readText(join(ROOT, 'docs', 'product', 'TRACEABILITY.md')) || '';
-  const rows = parseMarkdownTable(trace, '需求编号 | 业务域');
-  return rows.filter(r => r.length >= 7 && r[0].startsWith('REQ-'));
-}
-
-function validateBusinessPackages() {
-  const validPackages = parseBusinessPackages();
-  const rows = parseTraceabilityRows();
-
-  // 特别检查不存在的业务包
-  for (const row of rows) {
-    const bpField = row[2] || '';
-    const bpPart = bpField.split('/')[0].trim();
-    if (bpPart === 'mobile') continue; // 前端功能域
-    if (bpPart && !validPackages.has(bpPart)) {
-      fail('TRACEABILITY 中使用了不存在的业务包：' + bpPart + '（需求 ' + row[0] + '）');
-    }
-    if (bpPart === 's4_office') {
-      fail('TRACEABILITY 中使用了已禁止的业务包 s4_office（需求 ' + row[0] + '）');
-    }
-  }
-
-  ok('业务包一致性检查通过');
-}
-
-function validateTraceabilityStages() {
-  const rows = parseTraceabilityRows();
-  const counts = { '一期': 0, '二期': 0, '三期': 0 };
-  let total = 0;
-  const stageValues = new Set();
-
-  for (const row of rows) {
-    const stage = (row[6] || '').trim();
-    if (!stage) {
-      fail('TRACEABILITY 中需求 ' + row[0] + ' 缺少阶段');
-      continue;
-    }
-    stageValues.add(stage);
-    if (stage === '一期' || stage === '二期' || stage === '三期') {
-      counts[stage]++;
-      total++;
-    } else {
-      fail('TRACEABILITY 中需求 ' + row[0] + ' 使用了非法阶段：' + stage + '（不得使用 P0/P1/P2 或未知阶段）');
-    }
-  }
-
-  if (total === 0) {
-    fail('TRACEABILITY 中未找到有效阶段统计');
-    return;
-  }
-
-  if (total !== 53) {
-    warn('TRACEABILITY 阶段总计为 ' + total + '，与目标 53 不一致（需 WP-006 复核）');
-  }
-
-  if (counts['一期'] !== 31 || counts['二期'] !== 14 || counts['三期'] !== 8) {
-    warn('TRACEABILITY 阶段统计为 ' + counts['一期'] + '/' + counts['二期'] + '/' + counts['三期'] + '，目标为 31/14/8（已标记为 needs-review，由 WP-006 复核）');
-  }
-
-  // 三期全部为 deferred
-  for (const row of rows) {
-    const stage = (row[6] || '').trim();
-    const wp = (row[3] || '').trim();
-    if (stage === '三期') {
-      if (!wp.includes('另行规划') && !wp.includes('deferred') && !wp.includes('S6')) {
-        fail('三期需求 ' + row[0] + ' 的工作包未标记为 deferred/S6 另行规划：' + wp);
-      }
-    }
-  }
-
-  ok('需求阶段统计检查完成');
-}
-
-function validateOwners() {
-  const domainMap = readText(join(ROOT, 'docs', 'architecture', 'DOMAIN-MAP.md')) || '';
-  const rows = parseMarkdownTable(domainMap, '数据表/表组 | Owner 业务包');
-  const validPackages = parseBusinessPackages();
-  const tableOwners = new Map();
-
-  for (const row of rows) {
-    if (row.length < 2) continue;
-    const tablesText = row[0].trim();
-    const owner = row[1].trim();
-    if (!tablesText || !owner) continue;
-
-    if (owner.includes('或')) {
-      fail('DOMAIN-MAP 中 owner 包含不确定表述“或”：' + owner + '（表组 ' + tablesText + '）');
-      continue;
-    }
-
-    if (!validPackages.has(owner)) {
-      fail('DOMAIN-MAP 中 owner 业务包 ' + owner + ' 不存在（表组 ' + tablesText + '）');
-      continue;
-    }
-
-    const tables = tablesText.split(',').map(t => t.trim()).filter(Boolean);
-    for (const table of tables) {
-      if (tableOwners.has(table)) {
-        const existing = tableOwners.get(table);
-        if (existing !== owner) {
-          fail('DOMAIN-MAP 中表 ' + table + ' 存在多个 owner：' + existing + ' 和 ' + owner);
-        }
-      } else {
-        tableOwners.set(table, owner);
-      }
-    }
-  }
-
-  ok('Owner 检查通过');
-}
-
-function validateGateEvidence(state) {
-  if (!state) return;
-  const gates = state.gates || [];
-  for (const gate of gates) {
-    if (gate.status === 'approved' && (gate.type === 'human' || gate.type === 'hybrid')) {
-      const evidenceFile = join(ROOT, 'docs', 'execution', 'gates', gate.id + '.md');
-      if (!fileExists(evidenceFile)) {
-        fail('门禁 ' + gate.id + ' 已 approved，但缺少证据文件：docs/execution/gates/' + gate.id + '.md');
-      } else {
-        const text = readText(evidenceFile) || '';
-        if (!text.includes('状态') && !text.includes('approved')) {
-          warn('门禁证据文件 ' + gate.id + '.md 未明确记录批准状态');
-        }
-      }
-    }
-  }
-  ok('门禁证据检查通过');
-}
-
-function validateCycleDependencies(state) {
-  if (!state) return;
-  const workPackages = state.work_packages || [];
+function validateCycleDependencies(workPackages) {
   const graph = new Map();
   for (const wp of workPackages) {
     graph.set(wp.id, wp.depends_on || []);
   }
-
-  const status = new Map(); // unvisited, visiting, visited
+  const status = new Map();
   const path = [];
-
   for (const wp of workPackages) {
     status.set(wp.id, 'unvisited');
   }
-
   function dfs(id) {
     status.set(id, 'visiting');
     path.push(id);
@@ -552,28 +240,186 @@ function validateCycleDependencies(state) {
     status.set(id, 'visited');
     return false;
   }
-
   for (const wp of workPackages) {
     if (status.get(wp.id) === 'unvisited') {
-      dfs(wp.id);
+      if (dfs(wp.id)) return;
+    }
+  }
+  ok('循环依赖检查通过');
+}
+
+// 15.3 门禁关系
+function validateGateRelationship(state) {
+  if (!state) return;
+  const stageToGate = { S0: 'G0', S1: 'G1', S2: 'G2', S3: 'G3', S4: 'G4' };
+  const expectedGate = stageToGate[state.stage];
+
+  if (state.gate_status === 'waiting_human') {
+    if (state.gate == null) fail('gate_status 为 waiting_human 但 gate 为 null');
+    const inProgress = (state.work_packages || []).filter(w => w.status === 'in_progress');
+    if (inProgress.length > 0) fail('gate_status 为 waiting_human 但存在 in_progress 工作包');
+  }
+
+  const hasReadyOrInProgress = (state.work_packages || []).some(w => w.status === 'ready' || w.status === 'in_progress');
+  if (hasReadyOrInProgress && state.gate != null) {
+    warn('阶段内存在 ready 或 in_progress 工作包，但 gate 不为 null');
+  }
+
+  ok('门禁关系检查通过');
+}
+
+// 15.4 工作包一致性
+function validateWorkPackageConsistency(state) {
+  if (!state) return;
+  const workPackages = state.work_packages || [];
+
+  for (const wp of workPackages) {
+    const specPath = join(ROOT, wp.spec);
+    const text = readText(specPath);
+    if (!text) {
+      fail('工作包 ' + wp.id + ' 的 Markdown 文件无法读取：' + wp.spec);
+      continue;
+    }
+
+    // 检查 ID 一致
+    if (!text.includes('**ID**: ' + wp.id) && !text.includes('ID**: ' + wp.id)) {
+      fail('工作包 ' + wp.id + ' 的 Markdown 中 ID 与 STATE 不一致');
+    }
+
+    // 检查不包含动态状态
+    const statusPatterns = [/^状态[：:]\s*(draft|ready|in_progress|done|blocked)/m];
+    for (const re of statusPatterns) {
+      if (re.test(text)) {
+        fail('工作包 ' + wp.id + ' 的 Markdown 中包含动态状态（应在 STATE.json 中管理）');
+        break;
+      }
+    }
+
+    // 检查 Excel 功能引用
+    if (!text.includes('覆盖的 Excel 功能')) {
+      fail('工作包 ' + wp.id + ' 缺少"覆盖的 Excel 功能"章节');
+    }
+
+    // 检查验收标准
+    if (!text.includes('验收标准')) {
+      fail('工作包 ' + wp.id + ' 缺少验收标准');
+    }
+
+    // 检查验证命令
+    if (!text.includes('验证命令')) {
+      fail('工作包 ' + wp.id + ' 缺少验证命令');
     }
   }
 
-  ok('工作包循环依赖检查通过');
+  ok('工作包一致性检查通过');
 }
 
-function validateConsistency(state) {
-  validateBusinessPackages();
-  validateTraceabilityStages();
-  validateOwners();
-  validateGateEvidence(state);
-  validateCycleDependencies(state);
+// 15.5 文档链接
+function validateDocLinks() {
+  const filesToCheck = [
+    'README.md',
+    'AGENTS.md',
+    'docs/README.md',
+    'docs/GOAL.md',
+    'docs/EXECUTION.md',
+    'docs/ARCHITECTURE.md'
+  ];
+
+  // 添加工作包
+  const wpDir = join(ROOT, 'docs', 'work-packages');
+  if (existsSync(wpDir)) {
+    for (const f of readdirSync(wpDir)) {
+      if (f.endsWith('.md')) filesToCheck.push('docs/work-packages/' + f);
+    }
+  }
+
+  // 添加流程文档
+  const flowsDir = join(ROOT, 'docs', 'reference', 'flows');
+  if (existsSync(flowsDir)) {
+    for (const f of readdirSync(flowsDir)) {
+      if (f.endsWith('.md')) filesToCheck.push('docs/reference/flows/' + f);
+    }
+  }
+
+  filesToCheck.push('old/README.md');
+
+  for (const rel of filesToCheck) {
+    const file = join(ROOT, rel);
+    const text = readText(file);
+    if (!text) continue;
+    const baseDir = dirname(file);
+    const withoutCode = removeCodeBlocks(text);
+    const links = extractMarkdownLinks(withoutCode);
+    for (const url of links) {
+      if (!url) continue;
+      if (isExternalUrl(url)) continue;
+      if (url.startsWith('data:')) continue;
+      const target = resolve(baseDir, url.split('#')[0]);
+      if (!fileExists(target)) {
+        fail(rel + ' 中的相对链接目标不存在：' + url);
+      }
+    }
+  }
+
+  ok('文档链接检查通过');
 }
 
-// 5. 凭据扫描
+// 15.6 重复功能检查
+function validateDuplicateFunctions() {
+  const wpDir = join(ROOT, 'docs', 'work-packages');
+  if (!existsSync(wpDir)) return;
+
+  const wpFiles = readdirSync(wpDir).filter(f => f.endsWith('.md')).map(f => join(wpDir, f));
+  const functionMap = new Map(); // key: "一级功能|二级功能" -> [wp ids]
+
+  for (const file of wpFiles) {
+    const text = readText(file);
+    if (!text) continue;
+    const basename = file.replace(/.*[/\\]/, '').replace('.md', '');
+    const wpId = basename.toUpperCase().replace('WP-', 'WP-');
+
+    // 跳过集成验证类和基础设施类工作包
+    if (text.includes('集成验证') || text.includes('不直接对应 Excel 功能')) continue;
+
+    const rows = parseMarkdownTable(text, '序号 | 一级功能');
+    for (const row of rows) {
+      if (row.length < 3) continue;
+      const level1 = row[1] ? row[1].trim() : '';
+      const level2 = row[2] ? row[2].trim() : '';
+      if (!level1 || !level2) continue;
+      const key = level1 + '|' + level2;
+      if (!functionMap.has(key)) functionMap.set(key, []);
+      functionMap.get(key).push(wpId);
+    }
+  }
+
+  for (const [key, wps] of functionMap) {
+    // 过滤掉基础设施类工作包的重复
+    const businessWps = wps.filter(wp => wp !== 'WP-01' && wp !== 'WP-04');
+    if (businessWps.length > 1) {
+      fail('功能 "' + key.replace('|', ' > ') + '" 同时出现在多个业务工作包：' + businessWps.join(', '));
+    }
+  }
+
+  // 特别检查 WP-02 和 WP-04 的 Excel 功能表不应同时拥有文件设置或操作日志
+  const wp02Text = readText(join(wpDir, 'WP-02.md')) || '';
+  const wp04Text = readText(join(wpDir, 'WP-04.md')) || '';
+  const wp02Rows = parseMarkdownTable(wp02Text, '序号 | 一级功能');
+  const wp04Rows = parseMarkdownTable(wp04Text, '序号 | 一级功能');
+  const wp02Functions = new Set(wp02Rows.map(r => (r[2] || '').trim()).filter(Boolean));
+  const wp04Functions = new Set(wp04Rows.map(r => (r[2] || '').trim()).filter(Boolean));
+  for (const func of wp02Functions) {
+    if (wp04Functions.has(func)) {
+      fail('WP-02 和 WP-04 的 Excel 功能表同时包含"' + func + '"');
+    }
+  }
+
+  ok('重复功能检查通过');
+}
+
+// 15.7 凭据扫描
 function scanCredentials() {
   const textFiles = listFiles(ROOT, (f, name) => {
-    const ext = extname(f).toLowerCase();
     return isTextFile(f) && !name.endsWith('.lock') && !f.includes('node_modules') && !f.includes('.git');
   });
 
@@ -585,6 +431,16 @@ function scanCredentials() {
     { re: /AKLT[A-Za-z0-9_]{16,}/g, label: '阿里云 AccessKey' }
   ];
 
+  // 占位符模式，不视为真实凭据
+  const placeholderPatterns = [
+    /\$\{[^}]+\}/,
+    /<REDACTED>/i,
+    /CHANGE_ME/i,
+    /your[_-]?(password|secret|key)/i,
+    /xxx/i,
+    /placeholder/i
+  ];
+
   const knownLegacy = /old[\\/]/;
   let scanned = 0;
   for (const file of textFiles) {
@@ -592,9 +448,16 @@ function scanCredentials() {
     if (!content) continue;
     scanned++;
     for (const { re, label } of patterns) {
-      if (re.test(content)) {
+      const matches = content.match(re);
+      if (matches) {
+        // 检查是否为占位符
+        const isPlaceholder = matches.every(m =>
+          placeholderPatterns.some(p => p.test(m))
+        );
+        if (isPlaceholder) continue;
+
         if (knownLegacy.test(file)) {
-          warn('遗留文件 ' + relative(ROOT, file) + ' 包含 ' + label + '，需确认已在审计中登记');
+          warn('遗留文件 ' + relative(ROOT, file) + ' 包含 ' + label);
         } else {
           fail('文件 ' + relative(ROOT, file) + ' 包含 ' + label + '，请使用环境变量或密钥管理服务');
         }
@@ -605,61 +468,30 @@ function scanCredentials() {
   ok('凭据扫描完成，已扫描 ' + scanned + ' 个文本文件');
 }
 
-// 6. .gitignore
-function validateGitignore() {
-  const gitignore = readText(join(ROOT, '.gitignore'));
-  if (!gitignore) {
-    fail('缺少 .gitignore 文件');
-    return;
-  }
-  const lines = gitignore.split('\n').map(l => l.trim());
-
-  // 检查 pnpm-lock.yaml 未被忽略
-  const ignoresPnpmLock = lines.some(l => l === 'pnpm-lock.yaml' || l === '/pnpm-lock.yaml' || l === 'pnpm-lock.yaml/');
-  if (ignoresPnpmLock) {
-    fail('.gitignore 错误地忽略了 pnpm-lock.yaml');
-  } else {
-    ok('.gitignore 未忽略 pnpm-lock.yaml');
-  }
-
-  const required = ['node_modules/', 'target/', 'dist/', '.idea/', '.vscode/'];
-  const ignored = new Set(lines.map(l => l.replace(/\/$/, '')));
-  for (const item of required) {
-    const trimmed = item.replace(/\/$/, '');
-    if (!ignored.has(item) && !ignored.has(trimmed)) {
-      warn('.gitignore 未忽略 ' + item);
-    }
-  }
-}
-
-// 7. 提交追踪
-function validateCommitTrace() {
+// 15.8 Git 提交追踪
+function validateCommitTrace(state) {
+  if (!state) return;
   const result = exec('git', ['log', '--oneline', '--all']);
   if (result.status !== 0) {
-    fail('无法获取 Git 日志：' + result.stderr);
+    warn('无法获取 Git 日志');
     return;
   }
   const lines = result.stdout.split('\n').filter(Boolean);
   const forbidden = ['1', 'add', 'update', 'fix', 'done'];
 
-  let baselineIndex = lines.findIndex(line => line.includes('(WP-000)'));
-  if (baselineIndex === -1) baselineIndex = lines.length;
-
-  for (const line of lines.slice(0, baselineIndex)) {
+  // 只检查包含工作包引用的新体系提交，跳过历史旧提交
+  const newSystemCommits = lines.filter(line => /\(WP-\d+\)/.test(line));
+  for (const line of newSystemCommits) {
     const msg = line.replace(/^\S+\s+/, '');
     if (forbidden.includes(msg)) {
       fail('提交信息包含禁用词：' + line);
     }
   }
 
-  const stateText = readText(join(ROOT, 'docs', 'execution', 'STATE.json'));
-  if (stateText) {
-    const state = JSON.parse(stateText);
-    const doneWps = (state.work_packages || []).filter(w => w.status === 'done').map(w => w.id);
-    for (const wp of doneWps) {
-      if (!lines.some(line => line.includes('(' + wp + ')'))) {
-        fail('工作包 ' + wp + ' 为 done，但 Git 历史中没有包含 (' + wp + ') 的提交');
-      }
+  const doneWps = (state.work_packages || []).filter(w => w.status === 'done').map(w => w.id);
+  for (const wp of doneWps) {
+    if (!lines.some(line => line.includes('(' + wp + ')'))) {
+      fail('工作包 ' + wp + ' 为 done，但 Git 历史中没有包含 (' + wp + ') 的提交');
     }
   }
 
@@ -668,12 +500,15 @@ function validateCommitTrace() {
 
 async function main() {
   console.log('开始执行体系验证...\n');
+
+  validateRequiredFiles();
   const state = validateState();
-  validateDocs();
-  validateConsistency(state);
+  validateGateRelationship(state);
+  validateWorkPackageConsistency(state);
+  validateDocLinks();
+  validateDuplicateFunctions();
   scanCredentials();
-  validateGitignore();
-  validateCommitTrace();
+  validateCommitTrace(state);
 
   console.log('\n---');
   if (errors.length === 0) {

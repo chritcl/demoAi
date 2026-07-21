@@ -1,7 +1,8 @@
 {
   "goal": "GOAL-001",
   "stage": "S0",
-  "gate": null,
+  "gate": "G0",
+  "gate_status": "waiting_human",
   "auto_continue": true,
   "current_work_package": null,
   "work_packages": [

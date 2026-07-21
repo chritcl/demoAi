@@ -29,4 +29,4 @@
 
 ## 参见
 
-- `docs/legacy/LEGACY-REFERENCE-POLICY.md`
+- `docs/ARCHITECTURE.md`

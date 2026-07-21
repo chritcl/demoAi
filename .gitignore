@@ -1,0 +1,35 @@
+# ===== 前端项目 (oa-frontend) =====
+oa-frontend/node_modules
+oa-frontend/dist
+oa-frontend/package-lock.json
+oa-frontend/.env.local
+oa-frontend/.env.*.local
+
+# ===== 移动端项目 (oa-mobile) =====
+oa-mobile/node_modules
+oa-mobile/dist
+oa-mobile/package-lock.json
+oa-mobile/.env.local
+oa-mobile/.env.*.local
+
+# ===== 后端项目 (oa-backend) =====
+oa-backend/target
+oa-backend/*.class
+oa-backend/*.jar
+oa-backend/*.war
+oa-backend/.idea
+oa-backend/*.iml
+
+# ===== 系统/编辑器通用 =====
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea
+.vscode
+*.iml
+
+# ===== 根目录锁文件 =====
+pnpm-lock.yaml
+package-lock.json

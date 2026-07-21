@@ -48,7 +48,7 @@ vo
 
 #### service
 
-- Service 接口默认只供所属业务包内部使用；只有在领域地图中登记为跨包公开契约的接口才允许被其他业务包调用。
+- Service 接口默认只供所属业务包内部使用；-跨业务包公开 Service 接口必须在所属工作包中明确：- 调用方业务包 - 输入 - 输出 - 错误语义 - 数据所有权边界 -不得通过未声明的 Service 接口形成隐式跨包依赖。
 - Service 实现放入 `service.impl`。
 - 负责业务规则、事务控制和跨资源编排。
 - Service 不返回 `Result<T>`，返回业务结果、DTO、VO、分页结果或基本类型。
@@ -77,6 +77,7 @@ vo
 允许：业务包 A 的 Service 实现 → 业务包 B 的 Service 接口。
 
 禁止：
+
 - 业务包 A → 业务包 B 的 Mapper
 - 业务包 A → 业务包 B 的 Entity
 - 业务包 A → 业务包 B 的 service.impl

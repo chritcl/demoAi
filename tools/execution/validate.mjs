@@ -248,24 +248,33 @@ function validateCycleDependencies(workPackages) {
   ok('循环依赖检查通过');
 }
 
-// 15.3 门禁关系
+// 15.3 门禁关系与跨阶段约束
 function validateGateRelationship(state) {
   if (!state) return;
   const stageToGate = { S0: 'G0', S1: 'G1', S2: 'G2', S3: 'G3', S4: 'G4' };
   const expectedGate = stageToGate[state.stage];
 
+  // 门禁必须与当前阶段对应
+  if (state.gate != null && state.gate !== expectedGate) {
+    fail('门禁 ' + state.gate + ' 与当前阶段 ' + state.stage + ' 不匹配，期望 ' + expectedGate);
+  }
+
+  // waiting_human 期间不得存在 ready 或 in_progress
   if (state.gate_status === 'waiting_human') {
     if (state.gate == null) fail('gate_status 为 waiting_human 但 gate 为 null');
-    const inProgress = (state.work_packages || []).filter(w => w.status === 'in_progress');
-    if (inProgress.length > 0) fail('gate_status 为 waiting_human 但存在 in_progress 工作包');
+    const active = (state.work_packages || []).filter(w => w.status === 'ready' || w.status === 'in_progress');
+    if (active.length > 0) fail('gate_status 为 waiting_human 但存在 ready/in_progress 工作包：' + active.map(w => w.id).join(', '));
   }
 
-  const hasReadyOrInProgress = (state.work_packages || []).some(w => w.status === 'ready' || w.status === 'in_progress');
-  if (hasReadyOrInProgress && state.gate != null) {
-    warn('阶段内存在 ready 或 in_progress 工作包，但 gate 不为 null');
+  // ready 和 in_progress 工作包必须属于当前阶段
+  const workPackages = state.work_packages || [];
+  for (const wp of workPackages) {
+    if ((wp.status === 'ready' || wp.status === 'in_progress') && wp.stage !== state.stage) {
+      fail('工作包 ' + wp.id + ' 状态为 ' + wp.status + ' 但属于阶段 ' + wp.stage + '，当前阶段为 ' + state.stage);
+    }
   }
 
-  ok('门禁关系检查通过');
+  ok('门禁关系与跨阶段约束检查通过');
 }
 
 // 15.4 工作包一致性

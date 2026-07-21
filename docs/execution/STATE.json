@@ -65,7 +65,7 @@
       "id": "WP-004",
       "title": "Execution system auto-validation",
       "stage": "S0",
-      "status": "draft",
+      "status": "in_progress",
       "priority": 4,
       "risk": "medium",
       "depends_on": [

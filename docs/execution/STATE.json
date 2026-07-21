@@ -44,13 +44,13 @@
       ],
       "spec": "docs/execution/work-packages/WP-002-execution-protocol.md",
       "evidence": "docs/execution/evidence/WP-002-execution-protocol.md",
-      "completed_at": "2026-07-21T22:15:03.8807450+08:00"
+      "completed_at": "2026-07-21T22:15:03.880745+08:00"
     },
     {
       "id": "WP-003",
       "title": "Architecture boundary and ADR backlog",
       "stage": "S0",
-      "status": "draft",
+      "status": "in_progress",
       "priority": 3,
       "risk": "high",
       "depends_on": [

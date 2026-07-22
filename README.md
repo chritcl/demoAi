@@ -11,9 +11,9 @@
 
 1. [`AGENTS.md`](./AGENTS.md) — 执行权威与禁止项
 2. [`docs/GOAL.md`](./docs/GOAL.md) — 总目标
-3. [`docs/EXECUTION.md`](./docs/EXECUTION.md) — 执行规则
-4. [`docs/STATE.json`](./docs/STATE.json) — 机器可读执行状态
-5. [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — 技术架构
+3. [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — 技术架构
+4. [`docs/EXECUTION.md`](./docs/EXECUTION.md) — 执行规则
+5. [`docs/STATE.json`](./docs/STATE.json) — 机器可读执行状态
 6. [`docs/功能开发清单.xlsx`](./docs/功能开发清单.xlsx) — 业务范围唯一真源
 7. [`docs/work-packages/`](./docs/work-packages/) — 工作包规范
 
@@ -34,9 +34,10 @@ Codex 新会话启动后，按以下顺序读取：
 
 1. `AGENTS.md`
 2. `docs/GOAL.md`
-3. `docs/EXECUTION.md`
-4. `docs/STATE.json`
-5. 当前工作包（`docs/work-packages/WP-XX.md`）
+3. `docs/ARCHITECTURE.md`
+4. `docs/EXECUTION.md`
+5. `docs/STATE.json`
+6. 当前工作包（`docs/work-packages/WP-XX.md`）
 
 然后根据状态选择处于 `ready` 或 `in_progress` 的工作包继续执行。
 

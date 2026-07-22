@@ -4,19 +4,19 @@
   "gate": null,
   "gate_status": null,
   "auto_continue": true,
-  "current_work_package": "WP-02",
+  "current_work_package": null,
   "work_packages": [
     {
       "id": "WP-01",
       "stage": "S1",
-      "status": "done",
+      "status": "blocked",
       "depends_on": [],
       "spec": "docs/work-packages/WP-01.md"
     },
     {
       "id": "WP-02",
       "stage": "S1",
-      "status": "in_progress",
+      "status": "draft",
       "depends_on": ["WP-01"],
       "spec": "docs/work-packages/WP-02.md"
     },
@@ -91,5 +91,5 @@
       "spec": "docs/work-packages/WP-12.md"
     }
   ],
-  "blocked_reason": null
+  "blocked_reason": "等待用户推送并确认 GitHub Actions 通过"
 }

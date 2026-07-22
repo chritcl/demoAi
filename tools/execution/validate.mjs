@@ -117,7 +117,7 @@ function validateRequiredFiles() {
     'docs/ARCHITECTURE.md',
     'docs/功能开发清单.xlsx',
     'docs/work-packages',
-    'old/README.md'
+    'old'
   ];
   for (const rel of required) {
     if (!fileExists(join(ROOT, rel))) {
@@ -304,9 +304,9 @@ function validateWorkPackageConsistency(state) {
       }
     }
 
-    // 检查 Excel 功能引用
-    if (!text.includes('覆盖的 Excel 功能')) {
-      fail('工作包 ' + wp.id + ' 缺少"覆盖的 Excel 功能"章节');
+    // 检查 Excel 功能归属或集成引用
+    if (!text.includes('覆盖的 Excel 功能') && !text.includes('引用的 Excel 功能')) {
+      fail('工作包 ' + wp.id + ' 缺少"覆盖的 Excel 功能"或"引用的 Excel 功能"章节');
     }
 
     // 检查验收标准
@@ -373,57 +373,193 @@ function validateDocLinks() {
   ok('文档链接检查通过');
 }
 
-// 15.6 重复功能检查
-function validateDuplicateFunctions() {
+// 15.6 Excel 功能归属、阶段与集成引用检查
+function readExcelFunctions() {
+  const script = String.raw`
+import json
+import sys
+from openpyxl import load_workbook
+
+sys.stdout.reconfigure(encoding='utf-8')
+workbook = load_workbook('docs/功能开发清单.xlsx', data_only=True, read_only=True)
+sheet = workbook['功能开发清单']
+headers = [str(value).strip() if value is not None else '' for value in next(sheet.iter_rows(min_row=2, max_row=2, values_only=True))]
+columns = {name: index for index, name in enumerate(headers)}
+required = ['序号', '一级功能', '二级功能', '阶段']
+missing = [name for name in required if name not in columns]
+if missing:
+    raise ValueError('Excel 缺少字段：' + '、'.join(missing))
+
+features = []
+number = ''
+level1 = ''
+for row_number, row in enumerate(sheet.iter_rows(min_row=3, values_only=True), start=3):
+    current_number = row[columns['序号']]
+    current_level1 = row[columns['一级功能']]
+    level2 = row[columns['二级功能']]
+    stage = row[columns['阶段']]
+    if current_number not in (None, ''):
+        number = str(current_number).strip()
+    if current_level1 not in (None, ''):
+        level1 = str(current_level1).strip()
+    if level2 in (None, '') or stage in (None, ''):
+        continue
+    features.append({
+        'number': number,
+        'level1': level1,
+        'level2': str(level2).strip(),
+        'stage': str(stage).strip(),
+        'row': row_number,
+    })
+
+print(json.dumps(features, ensure_ascii=False))
+`;
+  const result = exec('python', ['-c', script]);
+  if (result.status !== 0) {
+    fail('无法使用 openpyxl 读取功能开发清单.xlsx：' + (result.stderr || '未知错误'));
+    return [];
+  }
+  try {
+    return JSON.parse(result.stdout);
+  } catch (error) {
+    fail('功能开发清单.xlsx 解析结果不是有效 JSON：' + error.message);
+    return [];
+  }
+}
+
+function featureKey(level1, level2, stage) {
+  return level1 + '|' + level2 + '|' + stage;
+}
+
+function isIntegrationWorkPackage(text) {
+  return text.includes('集成验证') || text.includes('G2 准备');
+}
+
+function validateExcelFunctionMappings() {
+  const expectedPhaseCounts = { '一期': 31, '二期': 14, '三期': 8 };
+  const excelFunctions = readExcelFunctions();
+  if (excelFunctions.length === 0) return;
+
+  const excelByKey = new Map();
+  const excelCountByPhase = new Map();
+  for (const feature of excelFunctions) {
+    const key = featureKey(feature.level1, feature.level2, feature.stage);
+    if (excelByKey.has(key)) {
+      fail('Excel 功能重复：' + key.replaceAll('|', ' > '));
+    }
+    excelByKey.set(key, feature);
+    excelCountByPhase.set(feature.stage, (excelCountByPhase.get(feature.stage) || 0) + 1);
+  }
+
+  for (const [phase, expectedCount] of Object.entries(expectedPhaseCounts)) {
+    const actualCount = excelCountByPhase.get(phase) || 0;
+    if (actualCount !== expectedCount) {
+      fail('Excel ' + phase + '功能数量为 ' + actualCount + '，期望 ' + expectedCount);
+    } else {
+      ok('Excel ' + phase + '功能数量为 ' + expectedCount);
+    }
+  }
+
+  const ownerMap = new Map();
+  const referenceMap = new Map();
   const wpDir = join(ROOT, 'docs', 'work-packages');
-  if (!existsSync(wpDir)) return;
-
-  const wpFiles = readdirSync(wpDir).filter(f => f.endsWith('.md')).map(f => join(wpDir, f));
-  const functionMap = new Map(); // key: "一级功能|二级功能" -> [wp ids]
-
+  const wpFiles = readdirSync(wpDir).filter(file => file.endsWith('.md')).map(file => join(wpDir, file));
   for (const file of wpFiles) {
     const text = readText(file);
     if (!text) continue;
-    const basename = file.replace(/.*[/\\]/, '').replace('.md', '');
-    const wpId = basename.toUpperCase().replace('WP-', 'WP-');
-
-    // 跳过集成验证类和基础设施类工作包
-    if (text.includes('集成验证') || text.includes('不直接对应 Excel 功能')) continue;
-
+    const wpId = file.replace(/.*[/\\]/, '').replace('.md', '').toUpperCase();
+    const targetMap = isIntegrationWorkPackage(text) ? referenceMap : ownerMap;
     const rows = parseMarkdownTable(text, '序号 | 一级功能');
     for (const row of rows) {
-      if (row.length < 3) continue;
-      const level1 = row[1] ? row[1].trim() : '';
-      const level2 = row[2] ? row[2].trim() : '';
-      if (!level1 || !level2) continue;
-      const key = level1 + '|' + level2;
-      if (!functionMap.has(key)) functionMap.set(key, []);
-      functionMap.get(key).push(wpId);
+      if (row.length < 4) continue;
+      const level1 = (row[1] || '').trim();
+      const level2 = (row[2] || '').trim();
+      const stage = (row[3] || '').trim();
+      if (!level1 || !level2 || !stage) continue;
+      const key = featureKey(level1, level2, stage);
+      if (!excelByKey.has(key)) {
+        const stageCandidates = excelFunctions.filter(feature => feature.level1 === level1 && feature.level2 === level2);
+        if (stageCandidates.length > 0) {
+          fail('工作包 ' + wpId + ' 中功能“' + level1 + ' > ' + level2 + '”阶段为 ' + stage + '，与 Excel 的 ' + stageCandidates.map(feature => feature.stage).join('、') + ' 不一致');
+        } else {
+          fail('工作包 ' + wpId + ' 引用了 Excel 中不存在的功能：' + level1 + ' > ' + level2 + ' > ' + stage);
+        }
+        continue;
+      }
+      if (!targetMap.has(key)) targetMap.set(key, []);
+      targetMap.get(key).push(wpId);
     }
   }
 
-  for (const [key, wps] of functionMap) {
-    // 过滤掉基础设施类工作包的重复
-    const businessWps = wps.filter(wp => wp !== 'WP-01' && wp !== 'WP-04');
-    if (businessWps.length > 1) {
-      fail('功能 "' + key.replace('|', ' > ') + '" 同时出现在多个业务工作包：' + businessWps.join(', '));
+  for (const phase of ['一期', '二期']) {
+    const expectedFeatures = excelFunctions.filter(feature => feature.stage === phase);
+    const ownerRows = [...ownerMap.entries()].filter(([key]) => key.endsWith('|' + phase));
+    const ownerCount = ownerRows.reduce((count, [, workPackages]) => count + workPackages.length, 0);
+    if (ownerCount !== expectedFeatures.length) {
+      fail(phase + '业务工作包映射数量为 ' + ownerCount + '，期望 ' + expectedFeatures.length);
+    } else {
+      ok(phase + '业务工作包映射数量为 ' + ownerCount);
+    }
+    for (const feature of expectedFeatures) {
+      const key = featureKey(feature.level1, feature.level2, phase);
+      const owners = ownerMap.get(key) || [];
+      if (owners.length !== 1) {
+        fail(phase + '功能“' + feature.level1 + ' > ' + feature.level2 + '”必须恰好由一个业务工作包拥有，当前为：' + (owners.join('、') || '无'));
+      }
     }
   }
 
-  // 特别检查 WP-02 和 WP-04 的 Excel 功能表不应同时拥有文件设置或操作日志
-  const wp02Text = readText(join(wpDir, 'WP-02.md')) || '';
-  const wp04Text = readText(join(wpDir, 'WP-04.md')) || '';
-  const wp02Rows = parseMarkdownTable(wp02Text, '序号 | 一级功能');
-  const wp04Rows = parseMarkdownTable(wp04Text, '序号 | 一级功能');
-  const wp02Functions = new Set(wp02Rows.map(r => (r[2] || '').trim()).filter(Boolean));
-  const wp04Functions = new Set(wp04Rows.map(r => (r[2] || '').trim()).filter(Boolean));
-  for (const func of wp02Functions) {
-    if (wp04Functions.has(func)) {
-      fail('WP-02 和 WP-04 的 Excel 功能表同时包含"' + func + '"');
+  for (const [key, owners] of ownerMap) {
+    if (owners.length > 1) {
+      fail('功能“' + key.replaceAll('|', ' > ') + '”同时由多个业务工作包拥有：' + owners.join('、'));
     }
   }
 
-  ok('重复功能检查通过');
+  for (const [key, references] of referenceMap) {
+    const owners = ownerMap.get(key) || [];
+    if (owners.length !== 1) {
+      fail('集成验证工作包 ' + references.join('、') + ' 引用的功能“' + key.replaceAll('|', ' > ') + '”没有唯一业务所有者');
+    }
+  }
+
+  ok('Excel 功能归属、阶段与集成引用检查通过');
+}
+
+// 15.7 WP-03 与 WP-07 会签边界检查
+function validateCountersignDependency() {
+  const wpDir = join(ROOT, 'docs', 'work-packages');
+  const wp03 = readText(join(wpDir, 'WP-03.md')) || '';
+  const wp07 = readText(join(wpDir, 'WP-07.md')) || '';
+  const serviceName = 'CountersignWorkflowService';
+  const capabilities = ['会签任务', '并行会签节点', '会签结果汇聚', '会签通过条件', '会签人员和结果审计'];
+  const declarationFields = ['调用方', '输入', '输出', '错误语义', '数据所有权边界'];
+
+  if (!wp03.includes('WP-07') || !wp03.includes(serviceName)) {
+    fail('WP-03 未向 WP-07 声明公开的 ' + serviceName);
+  }
+  for (const capability of capabilities) {
+    if (!wp03.includes(capability)) {
+      fail('WP-03 缺少 WP-07 所需的会签能力：' + capability);
+    }
+  }
+  for (const field of declarationFields) {
+    if (!wp03.includes(field)) {
+      fail('WP-03 跨包 Service 声明缺少：' + field);
+    }
+  }
+  if (!wp07.includes('WP-03') || !wp07.includes(serviceName)) {
+    fail('WP-07 未声明依赖 WP-03 的 ' + serviceName);
+  }
+  for (const capability of capabilities) {
+    if (!wp07.includes(capability)) {
+      fail('WP-07 未声明使用会签能力：' + capability);
+    }
+  }
+  if (!wp07.includes('自行实现另一套流程引擎')) {
+    fail('WP-07 未禁止在公文业务包中自行实现另一套流程引擎');
+  }
+
+  ok('WP-03 与 WP-07 会签依赖检查通过');
 }
 
 // 15.7 凭据扫描
@@ -515,7 +651,8 @@ async function main() {
   validateGateRelationship(state);
   validateWorkPackageConsistency(state);
   validateDocLinks();
-  validateDuplicateFunctions();
+  validateExcelFunctionMappings();
+  validateCountersignDependency();
   scanCredentials();
   validateCommitTrace(state);
 

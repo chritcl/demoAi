@@ -1,0 +1,96 @@
+:root {
+  color: #1f2937;
+  background: #f6f8fb;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.application-shell {
+  min-height: 100vh;
+}
+
+.application-shell__aside {
+  overflow: hidden;
+  background: #172033;
+  transition: width 0.2s ease;
+}
+
+.application-shell__brand {
+  height: 64px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.application-shell__aside .el-menu {
+  border-right: 0;
+  background: transparent;
+}
+
+.application-shell__aside .el-menu-item {
+  color: #cbd5e1;
+}
+
+.application-shell__aside .el-menu-item.is-active {
+  color: #ffffff;
+  background: #2864dc;
+}
+
+.application-shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.workspace-status {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.workspace-status__intro {
+  margin-bottom: 20px;
+}
+
+.workspace-status__intro h1 {
+  margin: 4px 0 8px;
+}
+
+.workspace-status__intro p {
+  margin: 0;
+  color: #64748b;
+}
+
+.workspace-status__eyebrow {
+  color: #2864dc !important;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.workspace-status__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.workspace-status__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workspace-status__grid p {
+  margin: 0;
+  color: #64748b;
+  line-height: 1.7;
+}

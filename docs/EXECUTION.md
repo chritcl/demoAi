@@ -17,9 +17,10 @@
 
 1. `AGENTS.md`
 2. `docs/GOAL.md`
-3. `docs/EXECUTION.md`
-4. `docs/STATE.json`
-5. 当前工作包
+3. `docs/ARCHITECTURE.md`
+4. `docs/EXECUTION.md`
+5. `docs/STATE.json`
+6. 当前工作包
 
 ## 工作包状态
 
@@ -35,7 +36,7 @@
 
 ## 执行算法
 
-1. 读取 `AGENTS.md`、`docs/GOAL.md`、`docs/EXECUTION.md`、`docs/STATE.json`。
+1. 读取 `AGENTS.md`、`docs/GOAL.md`、`docs/ARCHITECTURE.md`、`docs/EXECUTION.md`、`docs/STATE.json`。
 2. 如果存在 `in_progress` 工作包，继续执行。
 3. 否则选择依赖全部完成的第一个 `ready` 工作包。
 4. 将其改为 `in_progress`。

@@ -1,22 +1,22 @@
 {
   "goal": "GOAL-001",
-  "stage": "S0",
-  "gate": "G0",
-  "gate_status": "waiting_human",
+  "stage": "S1",
+  "gate": null,
+  "gate_status": null,
   "auto_continue": true,
-  "current_work_package": null,
+  "current_work_package": "WP-02",
   "work_packages": [
     {
       "id": "WP-01",
       "stage": "S1",
-      "status": "draft",
+      "status": "done",
       "depends_on": [],
       "spec": "docs/work-packages/WP-01.md"
     },
     {
       "id": "WP-02",
       "stage": "S1",
-      "status": "draft",
+      "status": "in_progress",
       "depends_on": ["WP-01"],
       "spec": "docs/work-packages/WP-02.md"
     },

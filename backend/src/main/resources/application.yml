@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: oa-platform
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

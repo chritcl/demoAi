@@ -124,9 +124,3 @@ Vue3 + TypeScript + Vite + Element Plus + Pinia。
 uni-app + Vue3，当前只交付 H5。
 
 Android、iOS、鸿蒙、水印、禁止截屏、手势和指纹等三期能力不进入当前实现范围。
-
-## 包管理
-
-- 根级 pnpm workspace。
-- 根级唯一 pnpm-lock.yaml。
-- 禁止创建 package-lock.json 和 yarn.lock。

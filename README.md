@@ -22,7 +22,6 @@
 - 后端：单 Maven、单 Spring Boot、业务包分层单体架构。
 - PC 端：Vue3 + TypeScript + Element Plus。
 - 移动端：uni-app + Vue3 H5。
-- 包管理：pnpm workspace，统一使用 `pnpm-lock.yaml`。
 
 ## 旧工程声明
 
